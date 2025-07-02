@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\AuthentificationController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketController;
 use App\Models\Event;
 use App\Models\Organizer;
@@ -13,7 +15,22 @@ use App\Models\Organizer;
 // locale
 Route::get('/lang/{locale}', [LanguageController::class, 'swap']);
 
+Route::get("/", function () {
+    return view('pages.frontend.accueil');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::resource('tickets', TicketController::class);
+    Route::resource('organisateurs', Organizer::class);
+    Route::resource('events', Event::class);
+    Route::get('profile', ProfileController::class)->name('profile');
+
+    Route::post('logout', [AuthentificationController::class, 'logout'])->name('logout');
+});
+
 Route::middleware('guest')->group(function () {
+
     Route::get('/login', [AuthentificationController::class, 'loginForm'])->name('login');
     Route::post('/login', [AuthentificationController::class, 'login']);
 
@@ -31,7 +48,5 @@ Route::middleware('guest')->group(function () {
         ->name('password.update');
     // Route::get('/mot-de-passe-oublie', [AuthentificationController::class, 'passwordForgotten'])->name('password.forgotten');
 
-    Route::resource('tickets', TicketController::class);
-    Route::resource('organisateurs', Organizer::class);
-    Route::resource('events', Event::class);
+
 });
