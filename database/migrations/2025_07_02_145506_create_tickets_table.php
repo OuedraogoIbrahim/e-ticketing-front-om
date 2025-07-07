@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('client_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('client_id')->constrained('clients')->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('event_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->string('date_achat');
-            $table->string("date_utilisation")->nullable();
-            $table->boolean("est_transfere")->default(0);
+            $table->string('token')->unique(); // Ajout pour le QR code
+            $table->string('date_utilisation')->nullable();
             $table->timestamps();
         });
     }

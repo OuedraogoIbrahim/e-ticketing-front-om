@@ -1,37 +1,30 @@
 {
   "menu": [
     {
-      "url": "/",
-      "name": "Home",
+      "url": "/dashboard",
+      "name": "Tableau de bord",
       "icon": "menu-icon tf-icons ti ti-smart-home",
-      "slug": "pages-home"
+      "slug": "dashboard"
     },
     {
-      "url": "page-2",
       "icon": "menu-icon tf-icons ti ti-file",
-      "name": "Page 2",
-      "slug": "pages-page-2"
-    },
-    {
-      "url": "pages/misc-error",
-      "name": "Error",
-      "icon": "menu-icon tf-icons ti ti-alert-triangle",
-      "slug": "pages-misc-error",
-      "target": "_blank"
-    },
-    {
-      "url": "auth/login-basic",
-      "name": "Login",
-      "icon": "menu-icon tf-icons ti ti-login",
-      "slug": "auth-login-basic",
-      "target": "_blank"
-    },
-    {
-      "url": "auth/register-basic",
-      "name": "Register",
-      "icon": "menu-icon tf-icons ti ti-user",
-      "slug": "auth-register-basic",
-      "target": "_blank"
+      "name": "Gestion evenement",
+      "slug": "events",
+      "role": "organisateur",
+      "submenu": [
+        {
+          "url": "events/create",
+          "icon": "menu-icon tf-icons ti ti-file",
+          "name": "Ajouter",
+          "slug": "events.create"
+        },
+        {
+          "url": "events",
+          "icon": "menu-icon tf-icons ti ti-file",
+          "name": "Liste",
+          "slug": "events.index"
+        }
+      ]
     }
   ]
 }

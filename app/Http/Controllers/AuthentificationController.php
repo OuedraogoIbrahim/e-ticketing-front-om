@@ -50,7 +50,9 @@ class AuthentificationController extends Controller
         if (Auth::attempt($credentials, $request->remember)) {
             $request->session()->regenerate();
 
-            return redirect()->intended('dashboard');
+            if (Auth::user()->role == 'organisateur') {
+                return redirect()->intended('dashboard');
+            }
         }
 
         return back()->withErrors([

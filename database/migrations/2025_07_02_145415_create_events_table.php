@@ -19,10 +19,12 @@ return new class extends Migration
             $table->string("date_debut");
             $table->string("date_fin");
             $table->string('ville');
-            $table->string('prix');
+            $table->integer('prix');
             $table->string('heure_debut');
             $table->string('heure_fin');
+            $table->string('nombre_tickets');
             $table->foreignId('organizer_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('event_type_id')->constrained("event_types")->onUpdate('cascade')->onDelete('cascade');
             $table->timestamps();
         });
     }

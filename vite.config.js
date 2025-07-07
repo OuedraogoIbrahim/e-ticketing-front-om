@@ -42,9 +42,7 @@ function libsWindowAssignment() {
     name: 'libsWindowAssignment',
 
     transform(src, id) {
-      if (id.includes('jkanban.js')) {
-        return src.replace('this.jKanban', 'window.jKanban');
-      } else if (id.includes('vfs_fonts')) {
+      if (id.includes('vfs_fonts')) {
         return src.replaceAll('this.pdfMake', 'window.pdfMake');
       }
     }
@@ -61,7 +59,6 @@ export default defineConfig({
         ...pageJsFiles,
         ...vendorJsFiles,
         ...LibsJsFiles,
-        'resources/js/laravel-user-management.js', // Processing Laravel User Management CRUD JS File
         ...CoreScssFiles,
         ...LibsScssFiles,
         ...LibsCssFiles,

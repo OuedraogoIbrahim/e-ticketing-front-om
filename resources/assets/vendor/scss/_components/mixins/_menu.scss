@@ -53,7 +53,7 @@
 
     //vertical menu active item bg color
     &.menu-vertical .menu-item.active > .menu-link:not(.menu-toggle) {
-      background: $menu-active-bg;
+      background: black; // couleur du menu actif
       box-shadow: 0px 2px 6px 0px rgba($active-bg, 0.3);
       color: color-contrast($active-bg) !important;
       &.menu-toggle::after {

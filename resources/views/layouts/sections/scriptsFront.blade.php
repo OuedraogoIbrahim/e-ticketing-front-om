@@ -1,6 +1,7 @@
 
 <!-- BEGIN: Vendor JS-->
 @vite([
+  'resources/assets/vendor/libs/jquery/jquery.js',
   'resources/assets/vendor/js/dropdown-hover.js',
   'resources/assets/vendor/js/mega-dropdown.js',
   'resources/assets/vendor/libs/popper/popper.js',

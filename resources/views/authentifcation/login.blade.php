@@ -7,7 +7,7 @@
 @section('title', 'Connexion - Pages')
 
 @section('vendor-style')
-    @vite(['resources/assets/vendor/libs/@form-validation/form-validation.scss'])
+    {{-- @vite(['resources/assets/vendor/libs/@form-validation/form-validation.scss']) --}}
 @endsection
 
 @section('page-style')
@@ -15,11 +15,10 @@
 @endsection
 
 @section('vendor-script')
-    @vite(['resources/assets/vendor/libs/@form-validation/popular.js', 'resources/assets/vendor/libs/@form-validation/bootstrap5.js', 'resources/assets/vendor/libs/@form-validation/auto-focus.js'])
+    @vite(['resources/assets/vendor/libs/@form-validation/bootstrap5.js'])
 @endsection
 
 @section('page-script')
-    @vite(['resources/assets/js/pages-auth.js'])
 @endsection
 
 @section('content')
@@ -38,14 +37,13 @@
                                             <img src="{{ asset('assets/img/orange-money-logo.jpg') }}"
                                                 alt="Orange Money Logo" height="{{ $height ?? 20 }}">
                                         </span>
-                                        <span
-                                            class="app-brand-text demo text-heading fw-bold">{{ config('variables.templateName') }}</span>
+                                        <span class="app-brand-text demo text-heading fw-bold">E-ticketing</span>
                                     </a>
                                 </div>
                             </a>
                         </div>
                         <!-- /Logo -->
-                        <h4 class="mb-1">Bienvenue sur la plateforme👋</h4>
+                        <h4 class="mb-1">Bienvenue sur la plateforme</h4>
                         <p class="mb-6">Veuillez vous connecter à votre compte pour commencer l'aventure</p>
 
                         @if ($errors->any())
@@ -91,13 +89,13 @@
                                             Se souvenir de moi
                                         </label>
                                     </div>
-                                    <a href="">
+                                    {{-- <a href="">
                                         <p class="mb-0">Mot de passe oublié ?</p>
-                                    </a>
+                                    </a> --}}
                                 </div>
                             </div>
                             <div class="mb-6">
-                                <button class="btn btn-primary d-grid w-100" type="submit">Se connecter</button>
+                                <button class="btn btn-warning d-grid w-100" type="submit">Se connecter</button>
                             </div>
                         </form>
 

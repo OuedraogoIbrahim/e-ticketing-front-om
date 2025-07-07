@@ -2,12 +2,12 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\language\LanguageController;
-use App\Http\Controllers\AuthentificationController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\TicketController;
-use App\Models\Event;
-use App\Models\Organizer;
 
 // Main Page Route
 // Route::get('/', [HomePage::class, 'index'])->name('pages-home');
@@ -16,37 +16,24 @@ use App\Models\Organizer;
 Route::get('/lang/{locale}', [LanguageController::class, 'swap']);
 
 Route::get("/", function () {
-    return view('pages.frontend.accueil');
-});
+    return view('pages.frontend.home');
+})->name('home');
+
+Route::get('list/events', [PublicEventController::class, 'index'])->name('list.events.index');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::resource('tickets', TicketController::class);
-    Route::resource('organisateurs', Organizer::class);
-    Route::resource('events', Event::class);
+    Route::resource('events', EventController::class)->except(['update', 'store', 'destroy']);
+    Route::get('/events/{event}/tickets', [EventController::class, 'history'])->name('events.history');
     Route::get('profile', ProfileController::class)->name('profile');
 
-    Route::post('logout', [AuthentificationController::class, 'logout'])->name('logout');
+    //Voir un evenement
+    Route::get("/list/events/{event}", [PublicEventController::class, 'show'])->name('list.events.show');
+
+    //Acheter un ticket
+    Route::get("tickets/purchase/{event}", PaymentController::class)->name('tickets.purchase');
 });
 
-Route::middleware('guest')->group(function () {
 
-    Route::get('/login', [AuthentificationController::class, 'loginForm'])->name('login');
-    Route::post('/login', [AuthentificationController::class, 'login']);
-
-    Route::get('/register', [AuthentificationController::class, 'registerForm'])->name('register');
-    Route::post('/register', [AuthentificationController::class, 'register']);
-
-
-    Route::get('/mot-de-passe-oublie', [AuthentificationController::class, 'passwordForgottenForm'])->name('password.forgotten');
-    Route::post('/mot-de-passe-oublie', [AuthentificationController::class, 'passwordForgotten']);
-
-    Route::get('/reset-password/{token}', [AuthentificationController::class, 'resetPasswordForm'])
-        ->name('password.reset');
-
-    Route::post('/reset-password', [AuthentificationController::class, 'resetPassword'])
-        ->name('password.update');
-    // Route::get('/mot-de-passe-oublie', [AuthentificationController::class, 'passwordForgotten'])->name('password.forgotten');
-
-
-});
+require __DIR__ . '/auth.php';

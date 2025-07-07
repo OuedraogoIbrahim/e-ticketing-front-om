@@ -37,45 +37,23 @@
 
 <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
 
-    @if ($configData['hasCustomizer'] == true)
-        <!-- Style Switcher -->
-        <div class="navbar-nav align-items-center">
-            <div class="nav-item dropdown-style-switcher dropdown me-2 me-xl-0">
-                <a class="nav-link btn btn-text-secondary btn-icon rounded-pill dropdown-toggle hide-arrow"
-                    href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <i class='ti ti-md'></i>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-start dropdown-styles">
-                    <li>
-                        <a class="dropdown-item" href="javascript:void(0);" data-theme="light">
-                            <span class="align-middle"><i class='ti ti-sun ti-md me-3'></i>Claire</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="javascript:void(0);" data-theme="dark">
-                            <span class="align-middle"><i class="ti ti-moon-stars ti-md me-3"></i>Sombre</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="javascript:void(0);" data-theme="system">
-                            <span class="align-middle"><i
-                                    class="ti ti-device-desktop-analytics ti-md me-3"></i>Système</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+    <div class="navbar-nav align-items-center flex-row gap-2">
+        <!-- Lien Accueil -->
+        <div class="nav-item me-2">
+            <a class="nav-link d-flex align-items-center" href="{{ route('home') }}">
+                <i class="ti ti-home ti-md me-1"></i>
+                <span class="d-none d-sm-inline">Accueil</span>
+            </a>
         </div>
-        <!--/ Style Switcher -->
-    @endif
+    </div>
+
 
     <ul class="navbar-nav flex-row align-items-center ms-auto">
-
         <!-- User -->
         <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
                 <div class="avatar avatar-online">
-                    <img src="{{ Auth::user() ? asset('assets/img/avatars/1.png') : asset('assets/img/avatars/1.png') }}"
-                        alt class="rounded-circle">
+                    <img src="{{ asset('assets/img/placeholder-user.jpg') }}" alt class="rounded-circle">
                 </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -85,19 +63,17 @@
                         <div class="d-flex align-items-center">
                             <div class="flex-shrink-0 me-2">
                                 <div class="avatar avatar-online">
-                                    <img src="{{ Auth::user() ? asset('assets/img/avatars/1.png') : asset('assets/img/avatars/1.png') }}"
-                                        alt class="rounded-circle">
+                                    <img src="{{ asset('assets/img/placeholder-user.jpg') }}" alt
+                                        class="rounded-circle">
                                 </div>
                             </div>
                             <div class="flex-grow-1">
                                 <h6 class="mb-0">
                                     @if (Auth::check())
                                         {{ Auth::user()->username }}
-                                    @else
-                                        John Doe
                                     @endif
                                 </h6>
-                                {{-- <small class="text-muted">{{ Auth::user()->employe->role }}</small> --}}
+                                <small class="text-muted">{{ Auth::user()->role }}</small>
                             </div>
                         </div>
                     </a>
