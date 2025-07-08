@@ -1,6 +1,6 @@
 @extends('layouts/layoutFront')
 
-@section('title', 'Accueil')
+@section('title', 'Paiement ')
 
 <!-- Vendor Styles -->
 @section('vendor-style')
@@ -9,12 +9,12 @@
 
 <!-- Page Styles -->
 @section('page-style')
-    @vite(['resources/assets/vendor/scss/pages/front-page-landing.scss', 'resources/assets/vendor/libs/select2/select2.scss'])
+    @vite(['resources/assets/vendor/scss/pages/front-page-landing.scss', 'resources/assets/vendor/libs/select2/select2.scss', 'resources/assets/vendor/libs/sweetalert2/sweetalert2.scss'])
 @endsection
 
 <!-- Vendor Scripts -->
 @section('vendor-script')
-    @vite(['resources/assets/vendor/libs/nouislider/nouislider.js', 'resources/assets/vendor/libs/swiper/swiper.js', 'resources/assets/vendor/libs/select2/select2.js'])
+    @vite(['resources/assets/vendor/libs/nouislider/nouislider.js', 'resources/assets/vendor/libs/swiper/swiper.js', 'resources/assets/vendor/libs/select2/select2.js', 'resources/assets/vendor/libs/sweetalert2/sweetalert2.js'])
 @endsection
 
 <!-- Page Scripts -->
@@ -24,5 +24,5 @@
 
 
 @section('content')
-    @livewire('Payment.Index', ['event' => $event])
+    @livewire('Payment.Index', ['eventId' => $eventId])
 @endsection

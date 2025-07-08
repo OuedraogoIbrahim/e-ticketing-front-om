@@ -19,7 +19,59 @@
 @endsection
 
 @section('page-script')
-    @vite(['resources/assets/js/pages-auth.js'])
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const form = document.getElementById("formAuthentication");
+
+            form.addEventListener("submit", async function(e) {
+                e.preventDefault();
+
+                // Nettoyage des erreurs précédentes
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove(
+                    'is-invalid'));
+                document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+
+                const data = {
+                    username: document.getElementById("username").value,
+                    email: document.getElementById("email").value,
+                    telephone: document.getElementById("phone").value, // Nouveau champ téléphone
+                    password: document.getElementById("password").value,
+                    password_confirmation: document.getElementById("password_confirmation").value,
+                };
+
+                try {
+                    const response = await axios.post('{{ env('API_URL') }}/register', data);
+                    localStorage.setItem("token-app-e-ticketing", response.data.token);
+
+                    await axios.post('/store-token-in-session', {
+                        token: response.data.token,
+                        user: response.data.user
+                    }, {
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    });
+
+                    window.location.href = '/dashboard';
+                } catch (error) {
+                    if (error.response && error.response.status === 422) {
+                        const errors = error.response.data.errors;
+                        for (let field in errors) {
+                            const input = document.querySelector(`[name="${field}"]`);
+                            if (input) {
+                                input.classList.add('is-invalid');
+                                const div = document.createElement('div');
+                                div.classList.add('invalid-feedback');
+                                div.innerText = errors[field][0];
+                                input.closest('.mb-6').appendChild(div);
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 @endsection
 
 @section('content')
@@ -44,48 +96,30 @@
                         <h4 class="mb-1">L'aventure commence ici 🚀</h4>
                         <p class="mb-6">Rendez la gestion de votre application simple et amusante !</p>
 
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
-
-                        <form id="formAuthentication" class="mb-6" action="{{ route('register') }}" method="POST">
+                        <form id="formAuthentication" class="mb-6">
                             @csrf
                             <div class="mb-6">
                                 <label for="username" class="form-label">Nom d'utilisateur</label>
-                                <input autocomplete="off" type="text"
-                                    class="form-control @error('username') is-invalid @enderror" id="username"
-                                    name="username" value="{{ old('username') }}"
+                                <input autocomplete="off" type="text" class="form-control" id="username" name="username"
                                     placeholder="Entrez votre nom d'utilisateur" autofocus>
-                                @error('username')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
                             <div class="mb-6">
                                 <label for="email" class="form-label">Email</label>
-                                <input autocomplete="off" type="text"
-                                    class="form-control @error('email') is-invalid @enderror" id="email" name="email"
-                                    value="{{ old('email') }}" placeholder="Entrez votre email">
-                                @error('email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <input autocomplete="off" type="text" class="form-control" id="email" name="email"
+                                    placeholder="Entrez votre email">
+                            </div>
+                            <div class="mb-6">
+                                <label for="phone" class="form-label">Téléphone</label>
+                                <input autocomplete="off" type="tel" class="form-control" id="phone" name="phone"
+                                    placeholder="Entrez votre numéro de téléphone">
                             </div>
                             <div class="mb-6 form-password-toggle">
                                 <label class="form-label" for="password">Mot de passe</label>
                                 <div class="input-group input-group-merge">
-                                    <input type="password" id="password"
-                                        class="form-control @error('password') is-invalid @enderror" name="password"
+                                    <input type="password" id="password" class="form-control" name="password"
                                         placeholder="············" aria-describedby="password" />
                                     <span class="input-group-text cursor-pointer"><i class="ti ti-eye-off"></i></span>
                                 </div>
-                                @error('password')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
                             <div class="mb-6 form-password-toggle">
                                 <label class="form-label" for="password_confirmation">Confirmer le mot de passe</label>
@@ -98,15 +132,11 @@
                             </div>
                             <div class="my-8">
                                 <div class="form-check mb-0 ms-2">
-                                    <input class="form-check-input @error('terms') is-invalid @enderror" type="checkbox"
-                                        id="terms-conditions" name="terms" {{ old('terms') ? 'checked' : '' }}>
+                                    <input class="form-check-input" type="checkbox" id="terms-conditions" name="terms">
                                     <label class="form-check-label" for="terms-conditions">
                                         J'accepte la
                                         <a href="javascript:void(0);">politique de confidentialité et les conditions</a>
                                     </label>
-                                    @error('terms')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
                                 </div>
                             </div>
                             <button class="btn btn-primary d-grid w-100" type="submit">S'inscrire</button>
@@ -118,25 +148,6 @@
                                 <span>Se connecter</span>
                             </a>
                         </p>
-
-                        <div class="divider my-6">
-                            <div class="divider-text">ou</div>
-                        </div>
-
-                        <div class="d-flex justify-content-center">
-                            <a href="javascript:;" class="btn btn-sm btn-icon rounded-pill btn-text-facebook me-1_5">
-                                <i class="tf-icons ti ti-brand-facebook-filled"></i>
-                            </a>
-                            <a href="javascript:;" class="btn btn-sm btn-icon rounded-pill btn-text-twitter me-1_5">
-                                <i class="tf-icons ti ti-brand-twitter-filled"></i>
-                            </a>
-                            <a href="javascript:;" class="btn btn-sm btn-icon rounded-pill btn-text-github me-1_5">
-                                <i class="tf-icons ti ti-brand-github-filled"></i>
-                            </a>
-                            <a href="javascript:;" class="btn btn-sm btn-icon rounded-pill btn-text-google-plus">
-                                <i class="tf-icons ti ti-brand-google-filled"></i>
-                            </a>
-                        </div>
                     </div>
                 </div>
                 <!-- /Inscription -->

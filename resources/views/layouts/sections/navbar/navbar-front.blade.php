@@ -3,7 +3,7 @@
     $currentRouteName = Route::currentRouteName();
     $activeRoutes = ['front-pages-pricing', 'front-pages-payment', 'front-pages-checkout', 'front-pages-help-center'];
     $activeClass = in_array($currentRouteName, $activeRoutes) ? 'active' : '';
-    use Illuminate\Support\Facades\Auth;
+    $user = session()->get('auth_user');
 @endphp
 <!-- Navbar: Start -->
 <nav class="layout-navbar shadow-none py-0">
@@ -79,7 +79,7 @@
                     <!-- / Style Switcher-->
                 @endif
                 <!-- navbar button: Start -->
-                @if (!Auth::check())
+                @if (!$user || $user['id'] == null)
                     <li>
                         <a href="{{ route('login') }}" class="btn btn-primary">
                             <span class="tf-icons ti ti-login scaleX-n1-rtl me-md-1"></span>
@@ -96,11 +96,10 @@
                         </div>
                     <li>
                         <div class="d-grid px-2 pt-2 pb-1">
-                            <a class="btn btn-sm btn-secondary d-flex" href="{{ route('logout') }}"
-                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <small class="align-middle">Se deconnecter</small>
+                            <button class="btn btn-sm btn-secondary d-flex" onclick="handleLogout()">
+                                <small class="align-middle">Se déconnecter</small>
                                 <i class="ti ti-logout ms-2 ti-14px"></i>
-                            </a>
+                            </button>
                         </div>
                     </li>
                 @endif
@@ -112,3 +111,36 @@
     </div>
 </nav>
 <!-- Navbar: End -->
+<script script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    async function handleLogout() {
+        const authToken = localStorage.getItem('token-app-e-ticketing');
+
+        try {
+            await axios.post('{{ env('API_URL') }}/logout', {}, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                }
+            });
+
+            // 2. Nettoyage des sessions côté serveur (Laravel)
+            await axios.post('{{ route('clear-session') }}', {}, {
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            });
+
+            // 3. Nettoyage côté client
+            localStorage.removeItem('token-app-e-ticketing');
+            sessionStorage.clear();
+
+            // 4. Redirection
+            window.location.href = '/login';
+
+        } catch (error) {
+            console.error('Déconnexion échouée:', error);
+            // Fallback: forcer la déconnexion
+            // window.location.href = '/login?force_logout=1';
+        }
+    }
+</script>

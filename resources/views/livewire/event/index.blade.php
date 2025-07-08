@@ -7,7 +7,7 @@
                 </div>
             @endif
 
-            @if (session('error'))
+            @if (session()->has('error'))
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
         </div>
@@ -17,26 +17,26 @@
             <div class="d-flex justify-content-between align-items-center row pt-4 gap-4 gap-md-0">
                 <div class="col-md-3 mb-4">
                     <label>Type</label>
-                    <select class="form-select" name="type" wire:model.live.debounce.500ms="searchType" id="">
-                        @foreach ($types as $t)
-                            <option value="{{ $t->id }}">{{ $t->nom }}</option>
+                    <select class="form-select" name="type" wire:model.live.debounce.500ms="searchType">
+                        <option value="">Tous les types</option>
+                        @foreach ($types as $id => $nom)
+                            <option value="{{ $id }}">{{ $nom }}</option>
                         @endforeach
                     </select>
-
                 </div>
                 <div class="col-md-3 mb-4">
                     <label>Ville</label>
-                    <input type="search" wire:model.live.debounce.500ms='searchVille' class="form-control"
+                    <input type="search" wire:model.live.debounce.500ms="searchVille" class="form-control"
                         placeholder="Rechercher par ville...">
                 </div>
                 <div class="col-md-3 mb-4">
                     <label>Prix minimum (Francs)</label>
-                    <input type="number" wire:model.live.debounce.500ms='searchPrixMin' class="form-control"
+                    <input type="number" wire:model.live.debounce.500ms="searchPrixMin" class="form-control"
                         placeholder="Prix min">
                 </div>
                 <div class="col-md-3 mb-4">
                     <label>Date de début</label>
-                    <input type="date" wire:model.live.debounce.500ms='searchDateDebut' class="form-control">
+                    <input type="date" wire:model.live.debounce.500ms="searchDateDebut" class="form-control">
                 </div>
             </div>
         </div>
@@ -70,36 +70,35 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @if ($events->isEmpty())
+                    @if (empty($events))
                         <tr>
                             <td colspan="6" class="text-center text-muted">Aucun événement trouvé.</td>
                         </tr>
                     @else
                         @foreach ($events as $event)
                             <tr>
-                                <th>{{ $event->titre }}</th>
-                                <th>{{ $event->type->nom }}</th>
-                                <th>{{ $event->date_debut }} à {{ $event->date_fin }}</th>
-                                <th>{{ $event->heure_debut }} - {{ $event->heure_fin }}</th>
-                                <th>{{ number_format($event->prix, 0, ',', ' ') }} Francs</th>
+                                <th>{{ $event['titre'] }}</th>
+                                <th>{{ $event['type']['nom'] ?? 'Inconnu' }}</th>
+                                <th>{{ $event['date_debut'] }} à {{ $event['date_fin'] }}</th>
+                                <th>{{ $event['heure_debut'] }} - {{ $event['heure_fin'] }}</th>
+                                <th>{{ number_format($event['prix'], 0, ',', ' ') }} Francs</th>
                                 <td class="d-flex align-items-center">
-                                    <a href="{{ route('events.edit', $event->id) }}"
+                                    <a href="{{ route('events.edit', $event['id']) }}"
                                         class="btn btn-sm btn-icon edit-record btn-text-secondary rounded-pill waves-effect">
                                         <i class="ti ti-edit"></i>
                                     </a>
-                                    <a href="{{ route('events.show', $event->id) }}"
+                                    <a href="{{ route('events.show', $event['id']) }}"
                                         class="btn btn-sm btn-icon btn-text-secondary rounded-pill waves-effect">
                                         <i class="ti ti-eye"></i>
                                     </a>
-                                    <a href="{{ route('events.history', $event->id) }}"
+                                    {{-- <a href="{{ route('events.history', $event['id']) }}"
                                         class="btn btn-sm btn-icon btn-text-secondary rounded-pill waves-effect">
                                         <i class="ti ti-history"></i>
-                                    </a>
-                                    <a href="javascript:void(0);" onclick="confirmDelete(event, '{{ $event->id }}')"
+                                    </a> --}}
+                                    <a href="javascript:void(0);" onclick="confirmDelete(event, '{{ $event['id'] }}')"
                                         class="btn btn-icon btn-text-secondary waves-effect waves-light rounded-pill delete-record">
                                         <i class="ti ti-trash ti-md"></i>
                                     </a>
-
                                 </td>
                             </tr>
                         @endforeach
@@ -107,39 +106,9 @@
                 </tbody>
             </table>
             <div class="my-4">
-                {{ $events->links('pagination::bootstrap-5') }}
+                {{ $paginator->links('pagination::bootstrap-5') }}
             </div>
         </div>
-
-        <script>
-            function confirmDelete(event, eventId) {
-                event.preventDefault();
-
-                Swal.fire({
-                    title: 'Êtes-vous sûr ?',
-                    text: 'Vous ne pourrez pas revenir en arrière !',
-                    imageUrl: "{{ asset('assets/lordicon/delete.gif') }}",
-                    // icon: 'warning',
-                    imageWidth: 100, // Largeur du GIF
-                    imageHeight: 100, // Hauteur du GIF
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Oui, supprimer !',
-                    cancelButtonText: 'Annuler'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        Swal.fire({
-                            icon: "success",
-                            title: 'Evenement supprimée avec succès.',
-                            showConfirmButton: false,
-                            timer: 1000
-                        });
-                        @this.call('deleteEvent', eventId); // Appelez la méthode Livewire pour supprimer
-                    }
-                });
-            }
-        </script>
     </div>
 
     <div wire:loading.class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
@@ -152,4 +121,53 @@
             <div class="sk-chase-dot"></div>
         </div>
     </div>
+
+    <script>
+        function confirmDelete(event, eventId) {
+            event.preventDefault();
+
+            Swal.fire({
+                title: 'Êtes-vous sûr ?',
+                text: 'Vous ne pourrez pas revenir en arrière !',
+                imageUrl: "{{ asset('assets/lordicon/delete.gif') }}",
+                imageWidth: 100,
+                imageHeight: 100,
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Oui, supprimer !',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('deleteEvent', eventId);
+                }
+            });
+        }
+    </script>
 </div>
+
+@script
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('show-success', (event) => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès',
+                    text: event.message,
+                    showConfirmButton: false,
+                    timer: 1000
+                });
+            });
+
+            Livewire.on('show-error', (event) => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: event.message,
+                    showConfirmButton: true
+                });
+            });
+
+        });
+    </script>
+@endscript

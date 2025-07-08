@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Password;
 use Illuminate\View\View;
 use Illuminate\Support\Str;
@@ -21,44 +22,12 @@ class AuthentificationController extends Controller
         return view('authentifcation.register', compact('pageConfigs'));
     }
 
-    public function register(Request $request)
-    {
-
-        $request->validate([
-            'username' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8|confirmed',
-            'terms' => 'accepted',
-        ]);
-
-
-        return redirect()->route('login');
-    }
     public function loginForm(): View
     {
         $pageConfigs = ['myLayout' => 'blank'];
         return view('authentifcation.login', compact('pageConfigs'));
     }
 
-    public function login(Request $request)
-    {
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required'],
-        ]);
-
-        if (Auth::attempt($credentials, $request->remember)) {
-            $request->session()->regenerate();
-
-            if (Auth::user()->role == 'organisateur') {
-                return redirect()->intended('dashboard');
-            }
-        }
-
-        return back()->withErrors([
-            'email' => 'Les informations saisies ne sont pas correctes.',
-        ])->onlyInput('email');
-    }
 
     public function passwordForgottenForm(): View
     {
@@ -111,17 +80,6 @@ class AuthentificationController extends Controller
             : back()->withErrors(['email' => [__($status)]]);
     }
 
-    public function deconnexion(Request $request)
-    {
-        Auth::logout();
-
-        $request->session()->invalidate();
-
-        $request->session()->regenerateToken();
-
-        return redirect()->route('login');
-    }
-
     public function changePasswordForm()
     {
         $pageConfigs = ['myLayout' => 'blank'];
@@ -159,12 +117,15 @@ class AuthentificationController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        try {
+            Http::withToken(session(env('API_TOKEN_NAME')))
+                ->post(env('API_URL') . '/logout')
+                ->throw();
 
-        $request->session()->invalidate();
-
-        $request->session()->regenerateToken();
-
-        return redirect()->route('login');
+            session()->flush();
+            return redirect()->route('login');
+        } catch (\Exception $e) {
+            return redirect()->back();
+        }
     }
 }

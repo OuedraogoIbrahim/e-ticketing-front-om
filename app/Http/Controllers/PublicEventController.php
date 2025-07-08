@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 
 class PublicEventController extends Controller
@@ -14,8 +15,17 @@ class PublicEventController extends Controller
         return view('pages.frontend.events.list');
     }
 
-    public function show(Event $event): View
+    public function show(string|int $eventId): View
     {
+        $event = null;
+        $response = Http::get(env('API_URL') . '/public/events/' . $eventId);
+        if ($response->successful()) {
+            $event = $response->json();
+        } else {
+            session()->flash('error', 'Erreur lors de la récupération de l\'événement.');
+            $event = [];
+        }
+
         return view('pages.frontend.events.show', compact('event'));
     }
 }

@@ -74,39 +74,41 @@
                             <div class="row g-0">
                                 <div class="col-md-4">
                                     <div class="ratio ratio-16x9 h-100">
-                                        <img src="{{ $event->photo ? asset('storage/' . $event->photo) : asset('assets/img/placeholder-event.jpg') }}"
-                                            class="img-fluid rounded-start object-fit-cover" alt="{{ $event->titre }}">
+                                        <img src="{{ $event['photo'] ? $event['photo'] : asset('assets/img/placeholder-event.jpg') }}"
+                                            class="img-fluid rounded-start object-fit-cover"
+                                            alt="{{ $event['titre'] }}">
                                     </div>
                                 </div>
                                 <div class="col-md-8">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between align-items-start">
                                             <div>
-                                                <h5 class="card-title mb-1">{{ $event->titre }}</h5>
-                                                <span class="badge bg-primary mb-2">{{ $event->type->nom }}</span>
+                                                <h5 class="card-title mb-1">{{ $event['titre'] }}</h5>
+                                                <span
+                                                    class="badge bg-primary mb-2">{{ $event['type']['nom'] ?? 'Inconnu' }}</span>
                                             </div>
                                             <div class="text-end">
                                                 <span
-                                                    class="fw-bold fs-5">{{ number_format($event->prix, 0, ',', ' ') }}
+                                                    class="fw-bold fs-5">{{ number_format($event['prix'], 0, ',', ' ') }}
                                                     FCFA</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex align-items-center text-muted mb-2">
                                             <i class="ti ti-calendar me-2"></i>
-                                            <span>{{ Carbon::parse($event->date_debut)->format('d/m/Y') }} •
-                                                {{ $event->heure_debut }}</span>
+                                            <span>{{ Carbon::parse($event['date_debut'])->format('d/m/Y') }} •
+                                                {{ $event['heure_debut'] }}</span>
                                         </div>
 
                                         <div class="d-flex align-items-center text-muted mb-3">
                                             <i class="ti ti-map-pin me-2"></i>
-                                            <span>{{ $event->ville }}</span>
+                                            <span>{{ $event['ville'] }}</span>
                                         </div>
 
                                         <p class="card-text text-truncate mb-3">
-                                            {{ Str::limit($event->description, 120) }}</p>
+                                            {{ Str::limit($event['description'], 120) }}</p>
 
-                                        <a href="{{ route('list.events.show', $event->id) }}"
+                                        <a href="{{ route('list.events.show', $event['id']) }}"
                                             class="btn btn-outline-dark">
                                             Voir détails
                                         </a>

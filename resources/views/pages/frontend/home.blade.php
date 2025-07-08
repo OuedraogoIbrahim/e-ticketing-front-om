@@ -24,6 +24,9 @@
 <!-- Page Scripts -->
 @section('page-script')
     @vite(['resources/assets/js/front-page-landing.js'])
+    <script>
+        console.log(localStorage.getItem('token-app-e-ticketing'))
+    </script>
 @endsection
 
 
@@ -35,32 +38,24 @@
                 <img src="{{ asset('assets/img/front-pages/backgrounds/hero-bg.png') }}" alt="hero background"
                     class="position-absolute top-0 start-50 translate-middle-x object-fit-cover w-100 h-100" data-speed="1" />
                 <div class="container">
-                    <div class="hero-text-box text-center position-relative">
-                        <h1 class="text-primary hero-title display-6 fw-extrabold">One dashboard to manage all your
-                            businesses</h1>
+                    <div class="hero-text-box text-center position-relative my-5">
+                        <h1 class="text-primary hero-title display-6 fw-extrabold">Votre accès aux plus grands événements
+                        </h1>
                         <h2 class="hero-sub-title h6 mb-6">
-                            Production-ready & easy to use Admin Template<br class="d-none d-lg-block" />
-                            for Reliability and Customizability.
+                            Billetterie en ligne sécurisée<br class="d-none d-lg-block" />
+                            pour une expérience sans attente
                         </h2>
-                        <div class="landing-hero-btn d-inline-block position-relative">
-                            <span class="hero-btn-item position-absolute d-none d-md-flex fw-medium">Join community
-                                <img src="{{ asset('assets/img/front-pages/icons/Join-community-arrow.png') }}"
-                                    alt="Join community arrow" class="scaleX-n1-rtl" /></span>
-                            <a href="#landingPricing" class="btn btn-primary btn-lg">Get early access</a>
-                        </div>
                     </div>
                     <div id="heroDashboardAnimation" class="hero-animation-img">
-                        <a href="{{ url('/app/ecommerce/dashboard') }}" target="_blank">
+                        <a href="{{ route('list.events.index') }}" target="_blank">
                             <div id="heroAnimationImg" class="position-relative hero-dashboard-img">
-                                <img src="{{ asset('assets/img/front-pages/landing-page/hero-dashboard-' . $configData['style'] . '.png') }}"
-                                    alt="hero dashboard" class="animation-img"
-                                    data-app-light-img="front-pages/landing-page/hero-dashboard-light.png"
-                                    data-app-dark-img="front-pages/landing-page/hero-dashboard-dark.png" />
-                                <img src="{{ asset('assets/img/front-pages/landing-page/hero-elements-' . $configData['style'] . '.png') }}"
-                                    alt="hero elements"
+                                <img src="{{ asset('assets/img/front-pages/landing-page/home2.png') }}" alt="hero dashboard"
+                                    class="animation-img" data-app-light-img="front-pages/landing-page/home2.png"
+                                    data-app-dark-img="front-pages/landing-page/home2.png" width="500" height="500" />
+                                <img src="{{ asset('assets/img/front-pages/landing-page/home2.png') }}" alt="hero elements"
                                     class="position-absolute hero-elements-img animation-img top-0 start-0"
-                                    data-app-light-img="front-pages/landing-page/hero-elements-light.png"
-                                    data-app-dark-img="front-pages/landing-page/hero-elements-dark.png" />
+                                    data-app-light-img="front-pages/landing-page/home2.png"
+                                    data-app-dark-img="front-pages/landing-page/home2.png" width="500" height="500" />
                             </div>
                         </a>
                     </div>

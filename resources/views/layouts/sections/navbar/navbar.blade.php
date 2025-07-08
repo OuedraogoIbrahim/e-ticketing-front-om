@@ -1,8 +1,9 @@
 @php
-    use Illuminate\Support\Facades\Auth;
     use Illuminate\Support\Facades\Route;
     $containerNav = $configData['contentLayout'] === 'compact' ? 'container-xxl' : 'container-fluid';
     $navbarDetached = $navbarDetached ?? '';
+    $user = session()->get('auth_user');
+
 @endphp
 
 <!-- Navbar -->
@@ -69,11 +70,9 @@
                             </div>
                             <div class="flex-grow-1">
                                 <h6 class="mb-0">
-                                    @if (Auth::check())
-                                        {{ Auth::user()->username }}
-                                    @endif
+                                    {{ $user['username'] }}
                                 </h6>
-                                <small class="text-muted">{{ Auth::user()->role }}</small>
+                                <small class="text-muted">{{ $user['role'] }}</small>
                             </div>
                         </div>
                     </a>
@@ -101,20 +100,14 @@
                 <li>
                     <div class="dropdown-divider my-1 mx-n2"></div>
                 </li>
-                @if (Auth::check())
-                    <li>
-                        <div class="d-grid px-2 pt-2 pb-1">
-                            <a class="btn btn-sm btn-danger d-flex" href="{{ route('logout') }}"
-                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <small class="align-middle">Se deconnecter</small>
-                                <i class="ti ti-logout ms-2 ti-14px"></i>
-                            </a>
-                        </div>
-                    </li>
-                    <form method="POST" id="logout-form" action="{{ route('logout') }}">
-                        @csrf
-                    </form>
-                @endif
+                <li>
+                    <div class="d-grid px-2 pt-2 pb-1">
+                        <button class="btn btn-sm btn-danger d-flex" onclick="handleLogout()">
+                            <small class="align-middle">Se déconnecter</small>
+                            <i class="ti ti-logout ms-2 ti-14px"></i>
+                        </button>
+                    </div>
+                </li>
             </ul>
         </li>
         <!--/ User -->
@@ -126,3 +119,37 @@
 @endif
 </nav>
 <!-- / Navbar -->
+
+<script script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+    async function handleLogout() {
+        const authToken = localStorage.getItem('token-app-e-ticketing');
+
+        try {
+            await axios.post('{{ env('API_URL') }}/logout', {}, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`,
+                }
+            });
+
+            // 2. Nettoyage des sessions côté serveur (Laravel)
+            await axios.post('{{ route('clear-session') }}', {}, {
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            });
+
+            // 3. Nettoyage côté client
+            localStorage.removeItem('token-app-e-ticketing');
+            sessionStorage.clear();
+
+            // 4. Redirection
+            window.location.href = '/login';
+
+        } catch (error) {
+            console.error('Déconnexion échouée:', error);
+            // Fallback: forcer la déconnexion
+            // window.location.href = '/login?force_logout=1';
+        }
+    }
+</script>

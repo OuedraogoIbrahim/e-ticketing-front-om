@@ -4,9 +4,13 @@
 <div class="row g-6">
 
     <div class="m-5">
-        @if (session()->has('success-payment'))
-            <div class="alert alert-info">
-                {{ session('message') }}
+        @if (session()->has('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @elseif (session()->has('error'))
+            <div class="alert alert-danger">
+                {{ session('error') }}
             </div>
         @endif
     </div>
@@ -19,7 +23,7 @@
                     <div class="avatar me-4">
                         <span class="avatar-initial rounded bg-label-primary"><i class='ti ti-ticket ti-28px'></i></span>
                     </div>
-                    <h4 class="mb-0">{{ $ticketsCount->count() }}</h4>
+                    <h4 class="mb-0">{{ $stats['tickets_total'] }}</h4>
                 </div>
                 <p class="mb-1">Tickets achetés</p>
             </div>
@@ -32,7 +36,7 @@
                     <div class="avatar me-4">
                         <span class="avatar-initial rounded bg-label-warning"><i class='ti ti-clock ti-28px'></i></span>
                     </div>
-                    <h4 class="mb-0">{{ $ticketsCount->whereNull('date_utilisation')->count() }}</h4>
+                    <h4 class="mb-0">{{ $stats['tickets_non_utilises'] }}</h4>
                 </div>
                 <p class="mb-1">Tickets non utilisés</p>
             </div>
@@ -46,9 +50,7 @@
                         <span class="avatar-initial rounded bg-label-danger"><i
                                 class='ti ti-arrows-exchange ti-28px'></i></span>
                     </div>
-                    <h4 class="mb-0">
-                        {{ \App\Models\TicketTransfer::where('from_client_id', Illuminate\Support\Facades\Auth::user()->client->id)->sum('quantity') }}
-                    </h4>
+                    <h4 class="mb-0">{{ $stats['tickets_transferes'] }}</h4>
                 </div>
                 <p class="mb-1">Tickets transférés</p>
             </div>
@@ -78,30 +80,30 @@
                                             </span>
                                         </div>
                                         <div>
-                                            <h6 class="mb-1 fw-normal">{{ $event->titre }}</h6>
+                                            <h6 class="mb-1 fw-normal">{{ $event['titre'] }}</h6>
                                             <small class="text-muted d-block mb-1">
-                                                {{ $event->date_debut }} - {{ $event->ville }}
+                                                {{ $event['date_debut'] }} - {{ $event['ville'] }}
                                             </small>
                                             <span class="fw-bold fs-5">
-                                                {{ $event->tickets->count() }}
-                                                ticket{{ $event->tickets->count() > 1 ? 's' : '' }}
+                                                {{ count($event['tickets']) }}
+                                                ticket{{ count($event['tickets']) > 1 ? 's' : '' }}
                                             </span>
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-end gap-2">
-                                        <a href="{{ route('list.events.show', $event->id) }}"
+                                        <a href="{{ route('list.events.show', $event['id']) }}"
                                             class="btn btn-sm btn-outline-dark" data-bs-toggle="tooltip"
                                             title="Voir l'événement">
                                             <i class="ti ti-eye ti-20px"></i>
                                         </a>
-                                        <button wire:click="openTransferModal({{ $event->tickets->first()->id }})"
+                                        <button wire:click="openTransferModal({{ $event['tickets'][0]['id'] }})"
                                             class="btn btn-sm btn-outline-dark" data-bs-toggle="modal"
                                             data-bs-target="#transferTicketModal" data-bs-toggle="tooltip"
                                             title="Transférer le ticket">
                                             <i class="ti ti-arrows-exchange ti-20px"></i>
                                         </button>
                                         <button wire:loading.attr="disabled"
-                                            wire:click="downloadTicket({{ $event->id }})"
+                                            wire:click="downloadTicket({{ $event['id'] }})"
                                             class="btn btn-sm btn-outline-dark" data-bs-toggle="tooltip"
                                             title="Télécharger le(s) QR code(s)">
                                             <i class="ti ti-download ti-20px"></i>
@@ -114,7 +116,21 @@
                 </div>
 
                 <div class="mt-4">
-                    {{ $events->links('pagination::bootstrap-5') }}
+
+                    {!! $links['first'] ?? '' !!}
+                    {!! $links['prev'] ?? '' !!}
+                    @foreach ($links ?? [] as $link)
+                        @if ($link['url'])
+                            <a href="{{ $link['url'] }}"
+                                class="btn btn-sm {{ $link['active'] ? 'btn-primary' : 'btn-outline-primary' }}">
+                                {{ $link['label'] }}
+                            </a>
+                        @else
+                            <span class="btn btn-sm btn-outline-primary disabled">{{ $link['label'] }}</span>
+                        @endif
+                    @endforeach
+                    {!! $links['next'] ?? '' !!}
+                    {!! $links['last'] ?? '' !!}
                 </div>
             </div>
         </div>
@@ -126,8 +142,41 @@
 
     <div
         wire:loading.class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3">
-        <div wire:loading class="spinner-border text-primary" style="width: 3rem; height: 3rem; " role="status">
+        <div wire:loading class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
             <span class="visually-hidden">Chargement...</span>
         </div>
     </div>
 </div>
+
+@script
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('show-success', (event) => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès',
+                    text: event.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            });
+
+            Livewire.on('show-error', (event) => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: event.message,
+                    showConfirmButton: true
+                });
+            });
+
+            Livewire.on('close-modal', () => {
+                const modal = document.getElementById('transferTicketModal');
+                const bootstrapModal = bootstrap.Modal.getInstance(modal);
+                if (bootstrapModal) {
+                    bootstrapModal.hide();
+                }
+            });
+        });
+    </script>
+@endscript

@@ -17,5 +17,5 @@
 @endsection
 
 @section('content')
-    @livewire('Event.Update', ['event' => $event])
+    @livewire('Event.Update', ['eventId' => $eventId])
 @endsection

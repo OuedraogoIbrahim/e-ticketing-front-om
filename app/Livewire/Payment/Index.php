@@ -2,56 +2,59 @@
 
 namespace App\Livewire\Payment;
 
-use Illuminate\Support\Str;
-use App\Models\Event;
-use App\Models\Payment;
-use App\Models\Ticket;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class Index extends Component
 {
-    public Event $event;
+    public $event = null;
+    public $eventId;
     public $nombre_tickets = 1;
-    public $telephone;
+    public $telephone = '';
 
     protected $rules = [
         'nombre_tickets' => 'required|numeric|min:1',
-        'telephone' => 'required'
+        'telephone' => 'required|',
     ];
 
-    public function mount(Event $event)
+    public function mount($eventId)
     {
-        $this->event = $event;
+        $this->eventId = $eventId;
+        $this->fetchEvent();
+    }
+
+    public function fetchEvent()
+    {
+        $response = Http::get(env('API_URL') . '/public/events/' . $this->eventId);
+        if ($response->successful()) {
+            $this->event = $response->json();
+        } else {
+            session()->flash('error', 'Erreur lors de la récupération de l\'événement.');
+            $this->dispatch('show-error', message: 'Erreur lors de la récupération de l\'événement.');
+        }
     }
 
     public function purchase()
     {
         $this->validate();
 
-        // Ici la logique de paiement Orange Money
+        $response = Http::withToken(session(env('API_TOKEN_NAME')))->post(
+            env('API_URL') . '/payment/' . $this->eventId . '/process',
+            [
+                'nombre_tickets' => $this->nombre_tickets,
+                'telephone' => $this->telephone,
+            ]
+        );
 
-        //Fin logique paiement
-
-
-        for ($i = 1; $i <= $this->nombre_tickets; $i++) {
-            Ticket::create([
-                'client_id' => Auth::user()->client->id,
-                'event_id' => $this->event->id,
-                'date_achat' => now(),
-                'token' => Str::random(32),
-            ]);
+        if ($response->successful()) {
+            session()->flash('success', $response->json()['message']);
+            $this->dispatch('show-success', message: $response->json()['message']);
+            $this->redirect(route('dashboard'));
+        } else {
+            $errors = $response->json()['message'] ?? 'Erreur lors du paiement.';
+            session()->flash('error', $errors);
+            $this->dispatch('show-error', message: $errors);
         }
-
-        Payment::create([
-            'user_id' => Auth::id(),
-            'event_id' => $this->event->id,
-            'montant_total' => $this->event->prix * $this->nombre_tickets,
-            'quantite_ticket' => $this->nombre_tickets,
-            'numero_orange_money' => $this->telephone
-        ]);
-
-        return redirect()->route('dashboard')->with('success-payment', 'Ticket(s) payé(s) avec succès ');
     }
 
     public function render()

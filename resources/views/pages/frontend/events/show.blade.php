@@ -1,10 +1,11 @@
 @php
     $configData = Helper::appClasses();
+    $user = session()->get('auth_user');
 @endphp
 
 @extends('layouts/layoutFront')
 
-@section('title', $event->titre)
+@section('title', $event['titre'])
 
 <!-- Vendor Styles -->
 @section('vendor-style')
@@ -67,30 +68,31 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <span class="type-badge mb-2 d-inline-block">{{ $event->type->nom }}</span>
-                    <h3 class="fw-bold text-dark mb-3">{{ $event->titre }}</h3>
+                    <span class="type-badge mb-2 d-inline-block">{{ $event['type']['nom'] }}</span>
+                    <h3 class="fw-bold text-dark mb-3">{{ $event['titre'] }}</h3>
                     <div class="d-flex align-items-center mb-3 p-3 rounded-3">
                         <span class="badge bg-success me-2 p-2">
                             <i class="fas fa-ticket-alt"></i>
                         </span>
                         <div class="fs-4">
-                            <span
-                                class="fw-bold">{{ $event->nombre_tickets - App\Models\Ticket::where('event_id', $event->id)->count() }}
+                            <span class="fw-bold">{{ $event['tickets_disponibles'] }}
                             </span>
                             <span class="ms-1">tickets disponibles</span>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    @if ($event->nombre_tickets > 0)
-                        <a href="{{ route('tickets.purchase', $event->id) }}"
-                            class="btn btn-outline-success btn-lg px-4 py-2 me-2">
-                            <i class="fas fa-ticket-alt me-2"></i>Acheter des tickets
-                        </a>
-                    @else
-                        <button class="btn btn-secondary btn-lg px-4 py-2 me-2" disabled>
-                            <i class="fas fa-times-circle me-2"></i>Complet
-                        </button>
+                    @if ($user['role'] == 'client')
+                        @if ($event['tickets_disponibles'] > 0)
+                            <a href="{{ route('tickets.purchase', ['eventId' => $event['id']]) }}"
+                                class="btn btn-outline-success btn-lg px-4 py-2 me-2">
+                                <i class="fas fa-ticket-alt me-2"></i>Acheter des tickets
+                            </a>
+                        @else
+                            <button class="btn btn-secondary btn-lg px-4 py-2 me-2" disabled>
+                                <i class="fas fa-times-circle me-2"></i>Complet
+                            </button>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -102,8 +104,8 @@
         <div class="row">
             <!-- Image de l'événement -->
             <div class="col-lg-6 mb-4">
-                @if ($event->photo)
-                    <img src="{{ asset('storage/' . $event->photo) }}" alt="{{ $event->titre }}" class="event-img">
+                @if ($event['photo'])
+                    <img src="{{ $event['photo'] }}" alt="{{ $event['titre'] }}" class="event-img">
                 @else
                     <img src="{{ asset('assets/img/placeholder-event.jpg') }}" alt="Default Event" class="event-img">
                 @endif
@@ -124,7 +126,7 @@
                         <div id="collapseDescription" class="accordion-collapse collapse show"
                             aria-labelledby="headingDescription" data-bs-parent="#eventAccordion">
                             <div class="accordion-body">
-                                {{ $event->description ?? 'Aucune description disponible.' }}
+                                {{ $event['description'] ?? 'Aucune description disponible.' }}
                             </div>
                         </div>
                     </div>
@@ -144,30 +146,30 @@
                                     <i class="fas fa-calendar-alt text-muted me-3 mt-1"></i>
                                     <div>
                                         <strong>Date :</strong>
-                                        {{ \Carbon\Carbon::parse($event->date_debut)->translatedFormat('j F Y') }}
-                                        @if ($event->date_fin && $event->date_fin != $event->date_debut)
-                                            au {{ \Carbon\Carbon::parse($event->date_fin)->translatedFormat('j F Y') }}
+                                        {{ \Carbon\Carbon::parse($event['date_debut'])->translatedFormat('j F Y') }}
+                                        @if ($event['date_fin'] && $event['date_fin'] != $event['date_debut'])
+                                            au {{ \Carbon\Carbon::parse($event['date_fin'])->translatedFormat('j F Y') }}
                                         @endif
                                     </div>
                                 </div>
                                 <div class="d-flex mb-2">
                                     <i class="fas fa-clock text-muted me-3 mt-1"></i>
                                     <div>
-                                        <strong>Horaire :</strong> {{ $event->heure_debut }} - {{ $event->heure_fin }}
+                                        <strong>Horaire :</strong> {{ $event['heure_debut'] }} - {{ $event['heure_fin'] }}
                                     </div>
                                 </div>
                                 <div class="d-flex mb-2">
                                     <i class="fas fa-tag text-muted me-3 mt-1"></i>
                                     <div>
-                                        <strong>Prix :</strong> {{ number_format($event->prix, 0, '.', '.') }} Francs
+                                        <strong>Prix :</strong> {{ number_format($event['prix'], 0, '.', '.') }} Francs
                                     </div>
                                 </div>
-                                <div class="d-flex">
+                                {{-- <div class="d-flex">
                                     <i class="fas fa-ticket-alt text-muted me-3 mt-1"></i>
                                     <div>
                                         <strong>Places disponibles :</strong> {{ $event->nombre_tickets }}
                                     </div>
-                                </div>
+                                </div> --}}
                             </div>
                         </div>
                     </div>
@@ -186,7 +188,7 @@
                                 <div class="d-flex">
                                     <i class="fas fa-city text-muted me-3 mt-1"></i>
                                     <div>
-                                        <strong>Ville :</strong> {{ $event->ville }}
+                                        <strong>Ville :</strong> {{ $event['ville'] }}
                                     </div>
                                 </div>
                                 <!-- Vous pourriez ajouter une carte ici plus tard -->
@@ -208,7 +210,8 @@
                                 <div class="d-flex">
                                     <i class="fas fa-user text-muted me-3 mt-1"></i>
                                     <div>
-                                        <strong>Nom :</strong> {{ $event->organizer->user->username ?? 'Non spécifié' }}
+                                        <strong>Nom :</strong>
+                                        {{ $event['organizer']['user']['username'] ?? 'Non spécifié' }}
                                     </div>
                                 </div>
                             </div>

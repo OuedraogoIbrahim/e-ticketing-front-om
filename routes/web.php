@@ -8,6 +8,9 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicEventController;
 use App\Http\Controllers\TicketController;
+use App\Http\Middleware\CheckTokenMiddleware;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 // Main Page Route
 // Route::get('/', [HomePage::class, 'index'])->name('pages-home');
@@ -19,9 +22,10 @@ Route::get("/", function () {
     return view('pages.frontend.home');
 })->name('home');
 
+
 Route::get('list/events', [PublicEventController::class, 'index'])->name('list.events.index');
 
-Route::middleware('auth')->group(function () {
+Route::middleware('token.auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::resource('tickets', TicketController::class);
     Route::resource('events', EventController::class)->except(['update', 'store', 'destroy']);
@@ -29,11 +33,32 @@ Route::middleware('auth')->group(function () {
     Route::get('profile', ProfileController::class)->name('profile');
 
     //Voir un evenement
-    Route::get("/list/events/{event}", [PublicEventController::class, 'show'])->name('list.events.show');
+    Route::get("/list/events/{eventId}", [PublicEventController::class, 'show'])->name('list.events.show');
 
     //Acheter un ticket
-    Route::get("tickets/purchase/{event}", PaymentController::class)->name('tickets.purchase');
+    Route::get("tickets/purchase/{eventId}", PaymentController::class)->name('tickets.purchase');
 });
 
 
+//Stockage du token en session
+Route::post('/store-token-in-session', function (Request $request) {
+    if ($request->has('token')) {
+        session()->put('token-app-e-ticketing', $request->token);
+
+        // Optionnel : stocker aussi les infos utilisateur
+        if ($request->has('user')) {
+            session()->put('auth_user', $request->user);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    return response()->json(['success' => false], 400);
+});
+
+Route::post('/clear-session', function (Request $request) {
+
+    session()->flush();
+    return response()->json(['success' => true]);
+})->name('clear-session');
 require __DIR__ . '/auth.php';

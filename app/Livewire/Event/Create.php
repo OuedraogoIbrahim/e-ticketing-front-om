@@ -2,19 +2,16 @@
 
 namespace App\Livewire\Event;
 
-use App\Models\Event;
-use App\Models\EventType;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
 class Create extends Component
 {
-
     use WithFileUploads;
 
     public $titre = '';
-    public $description;
+    public $description = '';
     public $photo;
     public $ville = '';
     public $prix = '';
@@ -22,42 +19,67 @@ class Create extends Component
     public $date_fin = '';
     public $heure_debut = '';
     public $heure_fin = '';
-    public $event_type_id;
-    public $nombre_tickets;
-    public $types;
+    public $event_type_id = '';
+    public $nombre_tickets = '';
+    public $types = [];
 
     public function mount()
     {
-        $this->types = EventType::all();
+        $this->fetchEventTypes();
+    }
+
+    public function fetchEventTypes()
+    {
+        $response = Http::get(env('API_URL') . '/public/event-types');
+        if ($response->successful()) {
+            $this->types = $response->json();
+        } else {
+            session()->flash('error', 'Erreur lors de la récupération des types d\'événements.');
+            $this->dispatch('show-error', message: 'Erreur lors de la récupération des types d\'événements.');
+        }
     }
 
     public function submit()
     {
         $validated = $this->validate([
             'titre' => 'required|string|max:255',
-            'nombre_tickets' => 'required|numeric',
+            'nombre_tickets' => 'required|numeric|min:1',
             'event_type_id' => 'required|exists:event_types,id',
             'description' => 'nullable|string',
             'photo' => 'nullable|image|max:2048',
             'ville' => 'required|string|max:255',
-            'prix' => 'required|numeric',
+            'prix' => 'required|numeric|min:0',
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after_or_equal:date_debut',
-            'heure_debut' => 'required',
-            'heure_fin' => 'required',
+            'heure_debut' => 'required|string',
+            'heure_fin' => 'required|string',
         ]);
 
+        $data = $validated;
         if ($this->photo) {
-            $validated['photo'] = $this->photo->store('events/' . Auth::user()->id, 'public');
+            $data['photo'] = $this->photo;
+        } else {
+            unset($data['photo']);
         }
 
-        $validated['organizer_id'] = Auth::user()->organizer->id;
+        $response = Http::withToken(session(env('API_TOKEN_NAME')))
+            ->asMultipart()
+            ->when($this->photo, function ($http) use ($data) {
+                return $http->attach('photo', file_get_contents($this->photo->getRealPath()), $this->photo->getClientOriginalName());
+            })
+            ->post(env('API_URL') . '/events', $data);
 
-        $event = Event::create($validated);
-
-        // Rediriger vers la route events.edit
-        return redirect()->route('events.show', $event->id)->with('message', 'Événement créé avec succès.');
+        if ($response->successful()) {
+            session()->flash('success', $response->json()['message']);
+            $this->dispatch('show-success', message: $response->json()['message']);
+            $this->redirect(route('events.show', $response->json()['event']['id']));
+        } else {
+            $errors = $response->json()['message'] ?? 'Erreur lors de la création de l\'événement.';
+            session()->flash('error', $errors);
+            $this->dispatch('show-error', message: $errors);
+        }
     }
+
     public function render()
     {
         return view('livewire.event.create');

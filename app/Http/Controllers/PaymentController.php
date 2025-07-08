@@ -10,10 +10,9 @@ class PaymentController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request, Event $event)
+    public function __invoke(Request $request,  $eventId)
     {
         //
-        
-        return view('pages.frontend.payment.index', compact('event'));
+        return view('pages.frontend.payment.index', compact('eventId'));
     }
 }

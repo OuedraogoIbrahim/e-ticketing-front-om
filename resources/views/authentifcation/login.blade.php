@@ -19,6 +19,56 @@
 @endsection
 
 @section('page-script')
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.getElementById('formLogin').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            document.querySelectorAll('.invalid-feedback').forEach(el => el.remove());
+
+            const form = new FormData(this);
+
+            try {
+                const response = await axios.post('{{ env('API_URL') . '/login' }}', {
+                    email: form.get('email'),
+                    password: form.get('password'),
+                });
+
+                // Stockage dans localStorage
+                localStorage.setItem('token-app-e-ticketing', response.data.token);
+
+                // Stockage dans la session PHP via une requête spéciale
+                await axios.post('/store-token-in-session', {
+                    token: response.data.token,
+                    user: response.data.user // si disponible
+                }, {
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+
+                window.location.href = '/dashboard';
+
+            } catch (error) {
+                if (error.response && error.response.status === 422) {
+                    const errors = error.response.data.errors;
+                    for (const key in errors) {
+                        const input = document.querySelector(`[name="${key}"]`);
+                        if (input) {
+                            input.classList.add('is-invalid');
+                            const div = document.createElement('div');
+                            div.classList.add('invalid-feedback');
+                            div.textContent = errors[key][0];
+                            input.closest('.mb-6').appendChild(div);
+                        }
+                    }
+                } else {
+                    alert("Email ou mot de passe incorrect.");
+                }
+            }
+        });
+    </script>
 @endsection
 
 @section('content')
@@ -46,58 +96,37 @@
                         <h4 class="mb-1">Bienvenue sur la plateforme</h4>
                         <p class="mb-6">Veuillez vous connecter à votre compte pour commencer l'aventure</p>
 
-                        @if ($errors->any())
-                            <div class="alert alert-danger">
-                                <ul>
-                                    @foreach ($errors->all() as $error)
-                                        <li>{{ $error }}</li>
-                                    @endforeach
-                                </ul>
-                            </div>
-                        @endif
 
-                        <form id="formAuthentication" class="mb-4" action="{{ route('login') }}" method="POST">
+                        <form id="formLogin" class="mb-4">
                             @csrf
                             <div class="mb-6">
                                 <label for="email" class="form-label">Email ou Nom d'utilisateur</label>
-                                <input type="text" autocomplete="off"
-                                    class="form-control @error('email') is-invalid @enderror" id="email" name="email"
-                                    value="{{ old('email') }}" placeholder="Entrez votre email ou nom d'utilisateur"
-                                    autofocus>
-                                @error('email')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <input type="text" autocomplete="off" class="form-control" id="email" name="email"
+                                    placeholder="Entrez votre email ou nom d'utilisateur" autofocus>
                             </div>
                             <div class="mb-6 form-password-toggle">
                                 <label class="form-label" for="password">Mot de passe</label>
                                 <div class="input-group input-group-merge">
-                                    <input type="password" id="password"
-                                        class="form-control @error('password') is-invalid @enderror" name="password"
+                                    <input type="password" id="password" class="form-control" name="password"
                                         placeholder="············" aria-describedby="password" />
                                     <span class="input-group-text cursor-pointer"><i class="ti ti-eye-off"></i></span>
                                 </div>
-                                @error('password')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
                             </div>
                             <div class="my-8">
                                 <div class="d-flex justify-content-between">
                                     <div class="form-check mb-0 ms-2">
-                                        <input class="form-check-input" type="checkbox" id="remember-me" name="remember"
-                                            {{ old('remember') ? 'checked' : '' }}>
+                                        <input class="form-check-input" type="checkbox" id="remember-me" name="remember">
                                         <label class="form-check-label" for="remember-me">
                                             Se souvenir de moi
                                         </label>
                                     </div>
-                                    {{-- <a href="">
-                                        <p class="mb-0">Mot de passe oublié ?</p>
-                                    </a> --}}
                                 </div>
                             </div>
                             <div class="mb-6">
                                 <button class="btn btn-warning d-grid w-100" type="submit">Se connecter</button>
                             </div>
                         </form>
+
 
                         <p class="text-center">
                             <span>Nouveau sur notre plateforme ?</span>

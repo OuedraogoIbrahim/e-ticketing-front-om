@@ -4,6 +4,18 @@
             <h5 class="mb-0 form-title-orange">Ajouter un événement</h5>
         </div>
         <div class="card-body p-6">
+            @if (session()->has('success'))
+                <div class="alert alert-success mb-4">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if (session()->has('error'))
+                <div class="alert alert-danger mb-4">
+                    {{ session('error') }}
+                </div>
+            @endif
+
             <form class="add-new-event pt-0" id="addNewEventForm" wire:submit='submit'>
                 <div class="row">
                     <div class="col-md-6 mb-6">
@@ -43,6 +55,12 @@
                         <label class="form-label" for="photo">Photo</label>
                         <input type="file" wire:model='photo'
                             class="form-control @error('photo') is-invalid @enderror" id="photo" />
+                        @if ($photo)
+                            <div class="mt-2">
+                                <img src="{{ $photo->temporaryUrl() }}" alt="Photo de l'événement" class="img-thumbnail"
+                                    style="max-width: 200px;">
+                            </div>
+                        @endif
                         @error('photo')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
@@ -82,7 +100,8 @@
                     </div>
 
                     <div class="col-md-6 mb-6">
-                        <label class="form-label" for="heure_fin">Heure de fin</label>
+                        <label class="form-label" for="heure_fin">Heure de fin <span
+                                class="text-danger">*</span></label>
                         <input autocomplete="off" type="time" wire:model.defer='heure_fin'
                             class="form-control @error('heure_fin') is-invalid @enderror" id="heure_fin" />
                         @error('heure_fin')
@@ -97,26 +116,25 @@
                                 class="text-danger">*</span></label>
                         <input autocomplete="off" type="number" wire:model.defer='nombre_tickets'
                             class="form-control @error('nombre_tickets') is-invalid @enderror" id="nombre_tickets"
-                            placeholder="Entrez le nombre_tickets" />
+                            placeholder="Entrez le nombre de tickets" />
                         @error('nombre_tickets')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
                     <div class="col-md-6 mb-6">
-                        <label class="form-label" for="type">Type <span class="text-danger">*</span></label>
-                        <select name="type" wire:model.defer='event_type_id'
-                            class="form-select @error('event_type_id') is-invalid @enderror" id="type">
-                            <option value="">Selectionner un type</option>
-                            @foreach ($types as $t)
-                                <option value="{{ $t->id }}">{{ $t->nom }}</option>
+                        <label class="form-label" for="event_type_id">Type <span class="text-danger">*</span></label>
+                        <select name="event_type_id" wire:model.defer='event_type_id'
+                            class="form-select @error('event_type_id') is-invalid @enderror" id="event_type_id">
+                            <option value="">Sélectionner un type</option>
+                            @foreach ($types as $id => $nom)
+                                <option value="{{ $id }}">{{ $nom }}</option>
                             @endforeach
                         </select>
-                        @error('type')
+                        @error('event_type_id')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
                 </div>
-
 
                 <div class="row">
                     <div class="col-md-12 mb-6">
@@ -130,7 +148,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-orange me-3" wire:loading.attr="disabled">
+                    <button type="submit" class="btn btn-warning me-3" wire:loading.attr="disabled">
                         <span wire:loading.remove>Soumettre</span>
                         <span wire:loading>
                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
@@ -142,4 +160,40 @@
         </div>
     </div>
 
+    <div
+        wire:loading.class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
+        <div wire:loading class="sk-chase sk-primary">
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+            <div class="sk-chase-dot"></div>
+        </div>
+    </div>
 </div>
+
+@script
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('show-success', (event) => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès',
+                    text: event.message,
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            });
+
+            Livewire.on('show-error', (event) => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: event.message,
+                    showConfirmButton: true
+                });
+            });
+        });
+    </script>
+@endscript

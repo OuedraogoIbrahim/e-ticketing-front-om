@@ -2,135 +2,108 @@
 
 namespace App\Livewire\Dashboard;
 
-use App\Models\Event;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 use Livewire\WithPagination;
-use App\Models\Ticket;
-use App\Models\TicketTransfer;
-use App\Models\User;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
-use Illuminate\Support\Str;
 
 class Client extends Component
 {
     use WithPagination;
 
-    public $ticketsCount;
-    public $ticket;
+    public $ticketsCount = [];
+    public $stats = [
+        'tickets_total' => 0,
+        'tickets_non_utilises' => 0,
+        'tickets_transferes' => 0,
+    ];
+    public $ticket = null;
     public $phone = '';
     public $quantity = 1;
 
     public function mount()
     {
-        $this->ticketsCount = Auth::user()->client->tickets()->with('event')->get();
-        $this->ticket = null;
+        $this->fetchStats();
+        $this->fetchTicketsCount();
+    }
+
+    public function fetchStats()
+    {
+        $response = Http::withToken(session(env('API_TOKEN_NAME')))->get(env('API_URL') . '/client/stats');
+        if ($response->successful()) {
+            $this->stats = $response->json();
+        } else {
+            session()->flash('error', 'Erreur lors de la récupération des statistiques.');
+            $this->dispatch('show-error', message: 'Erreur lors de la récupération des statistiques.');
+        }
+    }
+
+    public function fetchTicketsCount()
+    {
+        $response = Http::withToken(session(env('API_TOKEN_NAME')))->get(env('API_URL') . '/client/events');
+        if ($response->successful()) {
+            $this->ticketsCount = $response->json()['data'];
+        } else {
+            session()->flash('error', 'Erreur lors de la récupération des tickets.');
+            $this->dispatch('show-error', message: 'Erreur lors de la récupération des tickets.');
+        }
     }
 
     public function openTransferModal($ticketId)
     {
-        $this->ticket = Auth::user()->client->tickets()->with('event')->findOrFail($ticketId);
-        $this->phone = '';
-        $this->quantity = 1;
+        $response = Http::withToken(session(env('API_TOKEN_NAME')))->get(env('API_URL') . '/client/tickets/' . $ticketId);
+        if ($response->successful()) {
+            $this->ticket = $response->json();
+            $this->phone = '';
+            $this->quantity = 1;
+        } else {
+            session()->flash('error', 'Erreur lors de la récupération du ticket.');
+            $this->dispatch('show-error', message: 'Erreur lors de la récupération du ticket.');
+        }
     }
 
-    public function transferTicket($ticketId, $phone, $quantity)
+    public function transferTicket($ticketId)
     {
-        // Compter les tickets disponibles pour l'événement
-        $totalTickets = Auth::user()->client->tickets()
-            ->where('event_id', $this->ticket->event_id)
-            ->whereNull('date_utilisation')
-            ->count();
-
-        $this->validate([
-            'phone' => 'required|regex:/^\+?[1-9]\d{1,14}$/',
-            'quantity' => 'required|integer|min:1|max:' . $totalTickets,
+        $response = Http::withToken(session(env('API_TOKEN_NAME')))->post(env('API_URL') . '/client/tickets/' . $ticketId . '/transfer', [
+            'phone' => $this->phone,
+            'quantity' => $this->quantity,
         ]);
 
-        // Trouver le ticket original
-        $ticket = Auth::user()->client->tickets()->with('event')->findOrFail($ticketId);
-
-        // Vérifier le destinataire par numéro de téléphone
-        $destinataire = User::query()->where('telephone', $phone)->first();
-        if (!$destinataire) {
-            $this->addError('phone', 'Aucun client trouvé avec ce numéro de téléphone.');
-            return;
+        if ($response->successful()) {
+            session()->flash('success', $response->json()['message']);
+            $this->dispatch('show-success', message: $response->json()['message']);
+            $this->fetchStats(); // Rafraîchir les statistiques
+            $this->fetchTicketsCount(); // Rafraîchir la liste des tickets
+            $this->reset(['ticket', 'phone', 'quantity']);
+            $this->dispatch('close-modal'); // Fermer le modal
+        } else {
+            $errors = $response->json()['message'] ?? 'Erreur lors du transfert.';
+            session()->flash('error', $errors);
+            $this->dispatch('show-error', message: $errors);
         }
-
-        // Vérifier la quantité disponible pour l'événement
-        if ($quantity > $totalTickets) {
-            $this->addError('quantity', 'Quantité insuffisante pour cet événement.');
-            return;
-        }
-
-        // Transférer les tickets (changer client_id pour $quantity lignes)
-        $ticketsToTransfer = Auth::user()->client->tickets()
-            ->where('event_id', $ticket->event_id)
-            ->whereNull('date_utilisation')
-            ->take($quantity)
-            ->get();
-
-        foreach ($ticketsToTransfer as $ticketToTransfer) {
-            $ticketToTransfer->update([
-                'client_id' => $destinataire->client->id,
-                'date_achat' => $ticket->date_achat,
-                'token' => Str::uuid(), // Générer un nouveau token pour le ticket transféré
-            ]);
-        }
-
-        // Enregistrer le transfert
-        TicketTransfer::create([
-            'event_id' => $ticket->event_id,
-            'from_client_id' => Auth::user()->client->id,
-            'to_client_id' => $destinataire->client->id,
-            'quantity' => $quantity,
-            'transferred_at' => now(),
-        ]);
-
-        // Mettre à jour ticketsCount
-        $this->ticketsCount = Auth::user()->client->tickets()->with('event')->get();
-
-        session()->flash('message', 'Ticket transféré avec succès.');
-        $this->dispatch('close-modal');
     }
 
     public function downloadTicket($eventId)
     {
-        $tickets = Auth::user()->client->tickets()
-            ->with('event')
-            ->where('event_id', $eventId)
-            ->whereNull('date_utilisation')
-            ->get();
+        $response = Http::withToken(session(env('API_TOKEN_NAME')))->get(env('API_URL') . '/client/events/' . $eventId . '/download-ticket');
 
-        if ($tickets->isEmpty()) {
-            session()->flash('error', 'Aucun ticket disponible pour cet événement.');
-            return;
+        if ($response->successful()) {
+            return response()->streamDownload(function () use ($response) {
+                echo $response->body();
+            }, 'ticket-event-' . $eventId . '.pdf');
+        } else {
+            session()->flash('error', $response->json()['message'] ?? 'Erreur lors du téléchargement du ticket.');
+            $this->dispatch('show-error', message: $response->json()['message'] ?? 'Erreur lors du téléchargement du ticket.');
         }
-
-        $pdf = Pdf::loadView('pdf.ticket', [
-            'tickets' => $tickets,
-            'event' => $tickets[0]->event,
-        ]);
-
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, 'ticket-event-' . $eventId . '.pdf');
     }
 
     public function render()
     {
+        $response = Http::withToken(session(env('API_TOKEN_NAME')))->get(env('API_URL') . '/client/events?page=' . $this->getPage());
+        $events = $response->successful() ? $response->json() : ['data' => [], 'links' => [], 'meta' => []];
 
-        $client = Auth::user()->client;
-
-        $events = Event::whereHas('tickets', function ($q) use ($client) {
-            $q->where('client_id', $client->id)
-                ->whereNull('date_utilisation');
-        })
-            ->where('date_debut', '>', Carbon::today())
-            ->with(['tickets' => fn($q) => $q->where('client_id', $client->id)->whereNull('date_utilisation')])
-            ->paginate(6);
-
-        return view('livewire.dashboard.client', compact('events'));
+        return view('livewire.dashboard.client', [
+            'events' => $events['data'],
+            'links' => $events['links'],
+        ]);
     }
 }

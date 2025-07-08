@@ -4,7 +4,7 @@
 
 @extends('layouts/layoutFront')
 
-@section('title', 'Accueil')
+@section('title', 'Liste des evenements')
 
 <!-- Vendor Styles -->
 @section('vendor-style')

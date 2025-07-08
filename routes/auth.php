@@ -3,23 +3,21 @@
 use App\Http\Controllers\AuthentificationController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('guest')->group(function () {
+Route::middleware('guest.custom')->group(function () {
 
     Route::get('/login', [AuthentificationController::class, 'loginForm'])->name('login');
-    Route::post('/login', [AuthentificationController::class, 'login']);
 
     Route::get('/register', [AuthentificationController::class, 'registerForm'])->name('register');
-    Route::post('/register', [AuthentificationController::class, 'register']);
 
 
-    Route::get('/mot-de-passe-oublie', [AuthentificationController::class, 'passwordForgottenForm'])->name('password.forgotten');
-    Route::post('/mot-de-passe-oublie', [AuthentificationController::class, 'passwordForgotten']);
+    // Route::get('/mot-de-passe-oublie', [AuthentificationController::class, 'passwordForgottenForm'])->name('password.forgotten');
+    // Route::post('/mot-de-passe-oublie', [AuthentificationController::class, 'passwordForgotten']);
 
-    Route::get('/reset-password/{token}', [AuthentificationController::class, 'resetPasswordForm'])
-        ->name('password.reset');
+    // Route::get('/reset-password/{token}', [AuthentificationController::class, 'resetPasswordForm'])
+    //     ->name('password.reset');
 
-    Route::post('/reset-password', [AuthentificationController::class, 'resetPassword'])
-        ->name('password.update');
+    // Route::post('/reset-password', [AuthentificationController::class, 'resetPassword'])
+    //     ->name('password.update');
     // Route::get('/mot-de-passe-oublie', [AuthentificationController::class, 'passwordForgotten'])->name('password.forgotten');
 
 

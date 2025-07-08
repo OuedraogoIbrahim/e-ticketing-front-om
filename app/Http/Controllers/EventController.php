@@ -15,18 +15,19 @@ class EventController extends Controller
         return view('pages.backend.event.index');
     }
 
-    public function show(Event $event)
+
+    public function show(string $eventId)
     {
-        return view('pages.backend.event.show', compact('event'));
+        return view('pages.backend.event.show', compact('eventId'));
     }
     public function create()
     {
         return view('pages.backend.event.create');
     }
 
-    public function edit(Event $event)
+    public function edit(string $eventId)
     {
-        return view('pages.backend.event.update', compact('event'));
+        return view('pages.backend.event.update', compact('eventId'));
     }
 
     public function history(Event $event)
