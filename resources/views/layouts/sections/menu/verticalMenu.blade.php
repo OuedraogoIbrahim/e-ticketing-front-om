@@ -1,6 +1,7 @@
 @php
     use Illuminate\Support\Facades\Route;
     $configData = Helper::appClasses();
+    $user = session()->get('auth_user');
 @endphp
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
@@ -29,8 +30,8 @@
 
             @php
                 $showMenu = true;
-                if (isset($menu->role) && Illuminate\Support\Facades\Auth::check()) {
-                    $showMenu = Illuminate\Support\Facades\Auth::user()->role === $menu->role;
+                if (isset($menu->role) && $user) {
+                    $showMenu = $user['role'] === $menu->role;
                 }
             @endphp
 

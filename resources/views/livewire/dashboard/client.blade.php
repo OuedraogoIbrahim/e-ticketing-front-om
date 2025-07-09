@@ -68,70 +68,74 @@
                 </div>
             </div>
             <div class="card-body">
-                <div class="row g-4">
-                    @foreach ($events as $event)
-                        <div class="col-lg-4 col-md-6 col-sm-12">
-                            <div class="card card-border-shadow-primary h-100">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-start mb-3">
-                                        <div class="avatar flex-shrink-0 me-3">
-                                            <span class="avatar-initial rounded bg-label-warning">
-                                                <i class="ti ti-calendar-event ti-24px"></i>
-                                            </span>
+                @if (count($events) > 0)
+                    <div class="row g-4">
+                        @foreach ($events as $event)
+                            <div class="col-lg-4 col-md-6 col-sm-12">
+                                <div class="card card-border-shadow-primary h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-start mb-3">
+                                            <div class="avatar flex-shrink-0 me-3">
+                                                <span class="avatar-initial rounded bg-label-warning">
+                                                    <i class="ti ti-calendar-event ti-24px"></i>
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-normal">{{ $event['titre'] }}</h6>
+                                                <small class="text-muted d-block mb-1">
+                                                    {{ $event['date_debut'] }} - {{ $event['ville'] }}
+                                                </small>
+                                                <span class="fw-bold fs-5">
+                                                    {{ count($event['tickets']) }}
+                                                    ticket{{ count($event['tickets']) > 1 ? 's' : '' }}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h6 class="mb-1 fw-normal">{{ $event['titre'] }}</h6>
-                                            <small class="text-muted d-block mb-1">
-                                                {{ $event['date_debut'] }} - {{ $event['ville'] }}
-                                            </small>
-                                            <span class="fw-bold fs-5">
-                                                {{ count($event['tickets']) }}
-                                                ticket{{ count($event['tickets']) > 1 ? 's' : '' }}
-                                            </span>
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{{ route('list.events.show', $event['id']) }}"
+                                                class="btn btn-sm btn-outline-dark" data-bs-toggle="tooltip"
+                                                title="Voir l'événement">
+                                                <i class="ti ti-eye ti-20px"></i>
+                                            </a>
+                                            <button wire:click="openTransferModal({{ $event['tickets'][0]['id'] }})"
+                                                class="btn btn-sm btn-outline-dark" data-bs-toggle="modal"
+                                                data-bs-target="#transferTicketModal" data-bs-toggle="tooltip"
+                                                title="Transférer le ticket">
+                                                <i class="ti ti-arrows-exchange ti-20px"></i>
+                                            </button>
+                                            <button wire:loading.attr="disabled"
+                                                wire:click="downloadTicket({{ $event['id'] }})"
+                                                class="btn btn-sm btn-outline-dark" data-bs-toggle="tooltip"
+                                                title="Télécharger le(s) QR code(s)">
+                                                <i class="ti ti-download ti-20px"></i>
+                                            </button>
                                         </div>
-                                    </div>
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <a href="{{ route('list.events.show', $event['id']) }}"
-                                            class="btn btn-sm btn-outline-dark" data-bs-toggle="tooltip"
-                                            title="Voir l'événement">
-                                            <i class="ti ti-eye ti-20px"></i>
-                                        </a>
-                                        <button wire:click="openTransferModal({{ $event['tickets'][0]['id'] }})"
-                                            class="btn btn-sm btn-outline-dark" data-bs-toggle="modal"
-                                            data-bs-target="#transferTicketModal" data-bs-toggle="tooltip"
-                                            title="Transférer le ticket">
-                                            <i class="ti ti-arrows-exchange ti-20px"></i>
-                                        </button>
-                                        <button wire:loading.attr="disabled"
-                                            wire:click="downloadTicket({{ $event['id'] }})"
-                                            class="btn btn-sm btn-outline-dark" data-bs-toggle="tooltip"
-                                            title="Télécharger le(s) QR code(s)">
-                                            <i class="ti ti-download ti-20px"></i>
-                                        </button>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    @endforeach
-                </div>
+                        @endforeach
+                    </div>
 
-                <div class="mt-4">
-
-                    {!! $links['first'] ?? '' !!}
-                    {!! $links['prev'] ?? '' !!}
-                    @foreach ($links ?? [] as $link)
-                        @if ($link['url'])
-                            <a href="{{ $link['url'] }}"
-                                class="btn btn-sm {{ $link['active'] ? 'btn-primary' : 'btn-outline-primary' }}">
-                                {{ $link['label'] }}
-                            </a>
-                        @else
-                            <span class="btn btn-sm btn-outline-primary disabled">{{ $link['label'] }}</span>
+                    <div class="mt-4">
+                        @if ($links)
+                            @foreach ($links as $link)
+                                @if ($link['url'])
+                                    <a href="{{ $link['url'] }}"
+                                        class="btn btn-sm {{ $link['active'] ? 'btn-primary' : 'btn-outline-primary' }}">
+                                        {!! $link['label'] !!}
+                                    </a>
+                                @else
+                                    <span class="btn btn-sm btn-outline-primary disabled">{!! $link['label'] !!}</span>
+                                @endif
+                            @endforeach
                         @endif
-                    @endforeach
-                    {!! $links['next'] ?? '' !!}
-                    {!! $links['last'] ?? '' !!}
-                </div>
+                    </div>
+                @else
+                    <div class="text-center py-4">
+                        <i class="ti ti-calendar-off ti-48px text-muted mb-3"></i>
+                        <p class="text-muted">Aucun ticket pour des événements à venir</p>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
@@ -140,10 +144,13 @@
     {{-- Modal pour le transfert de ticket --}}
     @include('_partials._modals.modal-transfert-ticket')
 
-    <div
-        wire:loading.class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center z-3">
-        <div wire:loading class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
-            <span class="visually-hidden">Chargement...</span>
+    <div wire:loading.flex
+        class="position-fixed top-0 start-0 w-100 h-100 justify-content-center align-items-center z-3 bg-light bg-opacity-50">
+        <div class="d-flex flex-column align-items-center">
+            <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                <span class="visually-hidden">Chargement...</span>
+            </div>
+            <p class="mt-2 text-primary">Chargement en cours...</p>
         </div>
     </div>
 </div>

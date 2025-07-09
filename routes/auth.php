@@ -3,7 +3,7 @@
 use App\Http\Controllers\AuthentificationController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('guest.custom')->group(function () {
+Route::middleware('guest')->group(function () {
 
     Route::get('/login', [AuthentificationController::class, 'loginForm'])->name('login');
 
