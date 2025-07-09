@@ -91,10 +91,10 @@
                                         class="btn btn-sm btn-icon btn-text-secondary rounded-pill waves-effect">
                                         <i class="ti ti-eye"></i>
                                     </a>
-                                    {{-- <a href="{{ route('events.history', $event['id']) }}"
+                                    <a href="{{ route('events.history', $event['id']) }}"
                                         class="btn btn-sm btn-icon btn-text-secondary rounded-pill waves-effect">
                                         <i class="ti ti-history"></i>
-                                    </a> --}}
+                                    </a>
                                     <a href="javascript:void(0);" onclick="confirmDelete(event, '{{ $event['id'] }}')"
                                         class="btn btn-icon btn-text-secondary waves-effect waves-light rounded-pill delete-record">
                                         <i class="ti ti-trash ti-md"></i>

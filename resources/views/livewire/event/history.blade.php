@@ -2,7 +2,7 @@
     <div class="container">
         <div class="card">
             <div class="card-header border-bottom d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0">Statistiques des tickets - {{ $event->titre }}</h5>
+                <h5 class="card-title mb-0">Statistiques des tickets - {{ $event['titre'] }}</h5>
                 <a href="{{ route('events.index') }}" class="btn btn-warning">
                     <i class="ti ti-arrow-left me-1 ti-xs"></i> Retour aux évènements
                 </a>
@@ -32,7 +32,7 @@
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <h6 class="card-title">Tickets vendus</h6>
-                                <p class="display-6 mb-0">{{ $stats['totalTickets'] }}</p>
+                                <p class="display-6 mb-0">{{ $stats['total_tickets'] }}</p>
                             </div>
                         </div>
                     </div>
@@ -40,7 +40,7 @@
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <h6 class="card-title">Tickets transférés</h6>
-                                <p class="display-6 mb-0">{{ $stats['transferredTickets'] }}</p>
+                                <p class="display-6 mb-0">{{ $stats['transferred_tickets'] }}</p>
                             </div>
                         </div>
                     </div>
@@ -48,7 +48,7 @@
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <h6 class="card-title">Tickets utilisés</h6>
-                                <p class="display-6 mb-0">{{ $stats['usedTickets'] }}</p>
+                                <p class="display-6 mb-0">{{ $stats['used_tickets'] }}</p>
                             </div>
                         </div>
                     </div>
@@ -56,7 +56,7 @@
                         <div class="card h-100">
                             <div class="card-body text-center">
                                 <h6 class="card-title">Tickets restants</h6>
-                                <p class="display-6 mb-0">{{ $stats['remainingTickets'] }}</p>
+                                <p class="display-6 mb-0">{{ $stats['remaining_tickets'] }}</p>
                             </div>
                         </div>
                     </div>
@@ -76,3 +76,18 @@
         </div>
     </div>
 </div>
+
+@script
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('show-error', (event) => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: event.message,
+                    showConfirmButton: true
+                });
+            });
+        });
+    </script>
+@endscript

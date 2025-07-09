@@ -2,8 +2,8 @@
 
 namespace App\Livewire\Event;
 
-use App\Models\Event;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class History extends Component
@@ -12,34 +12,35 @@ class History extends Component
     public $eventStatus;
     public $stats;
 
-    public function mount(Event $event)
+    public function mount(string $eventId)
     {
-        // if ($event->organizer_id !== Auth::user()->organizer->id) {
-        //     abort(403, 'Non autorisé');
-        // }
+        $response = Http::withToken(session(env('API_TOKEN_NAME')))
+            ->get(env('API_URL') . '/history/' . $eventId . '/tickets');
 
-        $this->event = $event;
+        if ($response->successful()) {
+            $data = $response->json();
+            $this->event = $data['event'];
+            $this->stats = $data['stats'];
 
-        // Calculer l'état de l'événement
-        $now = Carbon::now();
-        $dateDebut = Carbon::parse($event->date_debut . ' ' . $event->heure_debut);
-        $dateFin = Carbon::parse($event->date_fin . ' ' . ($event->heure_fin ?? '23:59:59'));
+            // Calculer l'état de l'événement
+            $now = Carbon::now();
+            $dateDebut = Carbon::parse($this->event['date_debut'] . ' ' . $this->event['heure_debut']);
+            $dateFin = Carbon::parse($this->event['date_fin'] . ' ' . ($this->event['heure_fin'] ?? '23:59:59'));
 
-        if ($now->lessThan($dateDebut)) {
-            $this->eventStatus = ['text' => 'Pas encore commencé', 'class' => 'bg-info'];
-        } elseif ($now->between($dateDebut, $dateFin)) {
-            $this->eventStatus = ['text' => 'En cours', 'class' => 'bg-success'];
+            if ($now->lessThan($dateDebut)) {
+                $this->eventStatus = ['text' => 'Pas encore commencé', 'class' => 'bg-info'];
+            } elseif ($now->between($dateDebut, $dateFin)) {
+                $this->eventStatus = ['text' => 'En cours', 'class' => 'bg-success'];
+            } else {
+                $this->eventStatus = ['text' => 'Terminé', 'class' => 'bg-danger'];
+            }
+
+            // Calculer les billets restants
+            $this->stats['remaining_tickets'] = $this->event['nombre_tickets'] - $this->stats['total_tickets'];
         } else {
-            $this->eventStatus = ['text' => 'Terminé', 'class' => 'bg-danger'];
+            session()->flash('error', 'Erreur lors de la récupération de l\'événement.');
+            $this->dispatch('show-error', message: 'Erreur lors de la récupération de l\'événement.');
         }
-
-        // Calculer les statistiques des tickets
-        $this->stats = [
-            'totalTickets' => $event->tickets()->sum("nombre"),
-            'transferredTickets' => $event->ticket_transfers()->count(),
-            'usedTickets' => $event->tickets()->whereNotNull('date_utilisation')->count(),
-            'remainingTickets' => $event->nombre_tickets - $event->tickets()->sum("nombre"),
-        ];
     }
     public function render()
     {

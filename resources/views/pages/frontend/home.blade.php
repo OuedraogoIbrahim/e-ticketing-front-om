@@ -24,9 +24,6 @@
 <!-- Page Scripts -->
 @section('page-script')
     @vite(['resources/assets/js/front-page-landing.js'])
-    <script>
-        console.log(localStorage.getItem('token-app-e-ticketing'))
-    </script>
 @endsection
 
 

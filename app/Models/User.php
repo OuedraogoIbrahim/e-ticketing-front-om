@@ -46,13 +46,5 @@ class User extends Authenticatable
     ];
   }
 
-  public function organizer()
-  {
-    return $this->hasOne(Organizer::class);
-  }
 
-  public function client()
-  {
-    return $this->hasOne(Client::class);
-  }
 }

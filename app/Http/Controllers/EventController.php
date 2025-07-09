@@ -2,9 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Event;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class EventController extends Controller
 {
@@ -30,8 +27,8 @@ class EventController extends Controller
         return view('pages.backend.event.update', compact('eventId'));
     }
 
-    public function history(Event $event)
+    public function history(string $eventId)
     {
-        return view('pages.backend.event.history', compact('event'));
+        return view('pages.backend.event.history', compact('eventId'));
     }
 }

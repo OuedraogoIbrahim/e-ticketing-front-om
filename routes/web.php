@@ -7,10 +7,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicEventController;
-use App\Http\Controllers\TicketController;
-use App\Http\Middleware\CheckTokenMiddleware;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 // Main Page Route
 // Route::get('/', [HomePage::class, 'index'])->name('pages-home');
@@ -27,9 +24,8 @@ Route::get('list/events', [PublicEventController::class, 'index'])->name('list.e
 
 Route::middleware('token.auth')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
-    Route::resource('tickets', TicketController::class);
     Route::resource('events', EventController::class)->except(['update', 'store', 'destroy']);
-    Route::get('/events/{event}/tickets', [EventController::class, 'history'])->name('events.history');
+    Route::get('/events/{eventId}/tickets', [EventController::class, 'history'])->name('events.history');
     Route::get('profile', ProfileController::class)->name('profile');
 
     //Voir un evenement
@@ -56,6 +52,7 @@ Route::post('/store-token-in-session', function (Request $request) {
     return response()->json(['success' => false], 400);
 });
 
+//Suppression de la session
 Route::post('/clear-session', function (Request $request) {
 
     session()->flush();
