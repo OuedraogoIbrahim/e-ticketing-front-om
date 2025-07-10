@@ -35,11 +35,15 @@ Route::middleware('auth-user')->group(function () {
     Route::get("tickets/purchase/{eventId}", PaymentController::class)->name('tickets.purchase');
 });
 
+//Recuperation de la session
+Route::get('/get-token-from-session', function (Request $request) {
+    return response()->json(['token' => session(env('API_TOKEN_NAME'))]);
+});
 
 //Stockage du token en session
 Route::post('/store-token-in-session', function (Request $request) {
     if ($request->has('token')) {
-        session()->put('token-app-e-ticketing', $request->token);
+        session()->put(env('API_TOKEN_NAME'), $request->token);
 
         // Optionnel : stocker aussi les infos utilisateur
         if ($request->has('user')) {

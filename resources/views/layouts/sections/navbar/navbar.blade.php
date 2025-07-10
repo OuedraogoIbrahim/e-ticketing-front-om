@@ -123,33 +123,40 @@
 <script script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
     async function handleLogout() {
-        const authToken = localStorage.getItem('token-app-e-ticketing');
-
         try {
+            // 1. Récupérer le token depuis la session Laravel
+            const tokenResponse = await axios.get('/get-token-from-session');
+            const authToken = tokenResponse.data.token;
+
+            if (!authToken) {
+                throw new Error('Aucun token trouvé en session');
+            }
+
+            // 2. Appel à l'API de déconnexion
             await axios.post('{{ env('API_URL') }}/logout', {}, {
                 headers: {
                     'Authorization': `Bearer ${authToken}`,
                 }
             });
 
-            // 2. Nettoyage des sessions côté serveur (Laravel)
+            // 3. Nettoyage des sessions côté serveur (Laravel)
             await axios.post('{{ route('clear-session') }}', {}, {
                 headers: {
                     'X-CSRF-TOKEN': '{{ csrf_token() }}'
                 }
             });
 
-            // 3. Nettoyage côté client
+            // 4. Nettoyage côté client (au cas où)
             localStorage.removeItem('token-app-e-ticketing');
             sessionStorage.clear();
 
-            // 4. Redirection
+            // 5. Redirection
             window.location.href = '/login';
 
         } catch (error) {
             console.error('Déconnexion échouée:', error);
-            // Fallback: forcer la déconnexion
-            // window.location.href = '/login?force_logout=1';
+            // Fallback: redirection forcée
+            window.location.href = '/login?force_logout=1';
         }
     }
 </script>
