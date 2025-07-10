@@ -50,23 +50,39 @@
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
-
+                    <!-- Section Photo avec hauteur fixe -->
                     <div class="col-md-6 mb-6">
-                        <label class="form-label" for="photo">Photo</label>
-                        <input type="file" wire:model='photo'
-                            class="form-control @error('photo') is-invalid @enderror" id="photo" />
-                        @if ($photo)
-                            <div class="mt-2">
-                                <img src="{{ $photo->temporaryUrl() }}" alt="Photo de l'événement" class="img-thumbnail"
-                                    style="max-width: 200px;">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label" for="photo">Photo <span
+                                        class="text-danger">*</span></label>
+                                <input type="file" wire:model='photo'
+                                    class="form-control @error('photo') is-invalid @enderror" id="photo" required />
+                                @error('photo')
+                                    <div class="invalid-feedback d-block">{{ $message }}</div>
+                                @enderror
                             </div>
-                        @endif
-                        @error('photo')
-                            <div class="invalid-feedback d-block">{{ $message }}</div>
-                        @enderror
+                            <div class="col-md-6">
+                                <!-- Conteneur avec hauteur fixe -->
+                                <div class="image-preview-container" style="height: 40px; margin-top: 24px;">
+                                    @if ($photo)
+                                        <img src="{{ $photo->temporaryUrl() }}" alt="Photo de l'événement"
+                                            class="img-thumbnail cursor-pointer h-100 w-auto object-fit-cover"
+                                            data-bs-toggle="modal" data-bs-target="#imagePreviewModal">
+                                    @else
+                                        <!-- Placeholder vide pour maintenir l'espace -->
+                                        <div
+                                            class="border rounded h-100 d-flex align-items-center justify-content-center bg-light">
+                                            <small class="text-muted">Aperçu de l'image</small>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
+                <!-- Le reste du formulaire reste inchangé -->
                 <div class="row">
                     <div class="col-md-6 mb-6">
                         <label class="form-label" for="date_debut">Date de début <span
@@ -123,7 +139,7 @@
                     </div>
                     <div class="col-md-6 mb-6">
                         <label class="form-label" for="event_type_id">Type <span class="text-danger">*</span></label>
-                        <select name="event_type_id" wire:model.defer='event_type_id'
+                        <select name="event_type_id" wire:model.live='event_type_id'
                             class="form-select @error('event_type_id') is-invalid @enderror" id="event_type_id">
                             <option value="">Sélectionner un type</option>
                             @foreach ($types as $id => $nom)
@@ -135,6 +151,21 @@
                         @enderror
                     </div>
                 </div>
+                @if ($autreTypeId && $event_type_id == $autreTypeId)
+                    <div class="row">
+                        <div class="col-md-6 mb-6">
+                            <label class="form-label" for="type_autre_">
+                                Nom du type "Autre" <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" wire:model.defer='type_autre'
+                                class="form-control @error('type_autre') is-invalid @enderror" id="type_autre_"
+                                placeholder=" Entrez le type d'événement">
+                            @error('type_autre')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+                @endif
 
                 <div class="row">
                     <div class="col-md-12 mb-6">
@@ -160,7 +191,27 @@
         </div>
     </div>
 
-    <div
+    <!-- Modal pour la prévisualisation de l'image -->
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Prévisualisation de l'image</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    @if ($photo)
+                        <img src="{{ $photo->temporaryUrl() }}" alt="Photo de l'événement" class="img-fluid">
+                    @endif
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- <div
         wire:loading.class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
         <div wire:loading class="sk-chase sk-primary">
             <div class="sk-chase-dot"></div>
@@ -170,7 +221,7 @@
             <div class="sk-chase-dot"></div>
             <div class="sk-chase-dot"></div>
         </div>
-    </div>
+    </div> --}}
 </div>
 
 @script

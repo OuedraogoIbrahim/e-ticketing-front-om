@@ -22,6 +22,9 @@ class Create extends Component
     public $event_type_id = '';
     public $nombre_tickets = '';
     public $types = [];
+    public $type_autre = '';
+    public $autreTypeId = ''; // Stockera l'ID du type "Autre" s'il est choisit
+
 
     public function mount()
     {
@@ -33,6 +36,7 @@ class Create extends Component
         $response = Http::get(env('API_URL') . '/public/event-types');
         if ($response->successful()) {
             $this->types = $response->json();
+            $this->autreTypeId = collect($this->types)->search('autre');
         } else {
             session()->flash('error', 'Erreur lors de la récupération des types d\'événements.');
             $this->dispatch('show-error', message: 'Erreur lors de la récupération des types d\'événements.');
@@ -44,15 +48,23 @@ class Create extends Component
         $validated = $this->validate([
             'titre' => 'required|string|max:255',
             'nombre_tickets' => 'required|numeric|min:1',
-            'event_type_id' => 'required|exists:event_types,id',
+            'event_type_id' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!array_key_exists($value, $this->types)) {
+                        $fail('Le type sélectionné est invalide.');
+                    }
+                }
+            ],
             'description' => 'nullable|string',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'required|image|max:2048',
             'ville' => 'required|string|max:255',
             'prix' => 'required|numeric|min:0',
             'date_debut' => 'required|date',
             'date_fin' => 'required|date|after_or_equal:date_debut',
             'heure_debut' => 'required|string',
             'heure_fin' => 'required|string',
+            'type_autre' => 'required_if:event_type_id,' . $this->autreTypeId . '|nullable|string|max:255',
         ]);
 
         $data = $validated;

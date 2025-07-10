@@ -19,19 +19,19 @@
                     <h5 class="mb-4">Filtrer les événements</h5>
 
                     <!-- Search -->
-                    <div class="mb-4">
+                    {{-- <div class="mb-4">
                         <label class="form-label">Recherche</label>
                         <div class="input-group">
                             <span class="input-group-text bg-transparent"><i class="ti ti-search"></i></span>
-                            <input type="text" wire:model.live.debounce.500ms="search"
-                                class="form-control border-start-0" placeholder="Mot-clé...">
+                            <input type="text" wire:model="search" class="form-control border-start-0"
+                                placeholder="Mot-clé...">
                         </div>
-                    </div>
+                    </div> --}}
 
                     <!-- Type filter -->
                     <div class="mb-4" wire:ignore>
                         <label class="form-label">Type d'événement</label>
-                        <select id="type" wire:model.live="type" class="select2 form-select">
+                        <select id="type" wire:model="type" class="select2 form-select">
                             <option value="">Tous les types</option>
                             @foreach ($eventTypes as $id => $nom)
                                 <option value="{{ $id }}">{{ $nom }}</option>
@@ -42,7 +42,7 @@
                     <!-- City filter -->
                     <div class="mb-4" wire:ignore>
                         <label class="form-label">Ville</label>
-                        <select id="ville" wire:model.live="ville" class="select2 form-select">
+                        <select id="ville" wire:model="ville" class="select2 form-select">
                             <option value="">Toutes les villes</option>
                             @foreach ($villes as $ville)
                                 <option value="{{ $ville }}">{{ $ville }}</option>
@@ -53,13 +53,18 @@
                     <!-- Date filter -->
                     <div class="mb-4" wire:ignore>
                         <label class="form-label">Date</label>
-                        <select id="date" wire:model.live="date" class="select2 form-select">
+                        <select id="date" wire:model="date" class="select2 form-select">
                             <option value="">Toutes les dates</option>
                             <option value="today">Aujourd'hui</option>
                             <option value="week">Cette semaine</option>
                             <option value="month">Ce mois</option>
                         </select>
                     </div>
+
+                    <!-- Bouton Rechercher -->
+                    {{-- <button wire:click="search" class="btn btn-primary w-100 mb-3">
+                        <i class="ti ti-search me-2"></i>Rechercher
+                    </button> --}}
 
                     <!-- Reset button -->
                     <button type="button" wire:click="resetFilters" class="btn btn-outline-secondary w-100">
@@ -127,9 +132,17 @@
                     @endforelse
 
                     <!-- Pagination -->
-                    <div class="mt-4">
-                        {{ $events->links('pagination::bootstrap-5') }}
-                    </div>
+                    @if ($pagination)
+                        <div class="mt-4">
+                            @if ($pagination['current_page'] > 1)
+                                <button wire:click="previousPage" class="btn btn-outline-primary">Précédent</button>
+                            @endif
+
+                            @if ($pagination['current_page'] < $pagination['last_page'])
+                                <button wire:click="nextPage" class="btn btn-outline-primary">Suivant</button>
+                            @endif
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

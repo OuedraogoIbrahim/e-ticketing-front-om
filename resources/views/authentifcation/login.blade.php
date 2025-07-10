@@ -30,7 +30,7 @@
             const form = new FormData(this);
 
             try {
-                const response = await axios.post('{{ env('API_URL') . '/login' }}', {
+                const response = await axios.post('{{ env('API_URL') . '/login/organisateur' }}', {
                     email: form.get('email'),
                     password: form.get('password'),
                 });

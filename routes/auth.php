@@ -3,7 +3,7 @@
 use App\Http\Controllers\AuthentificationController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('guest.custom')->group(function () {
+Route::middleware('guest-user')->group(function () {
 
     Route::get('/login', [AuthentificationController::class, 'loginForm'])->name('login');
 
@@ -24,6 +24,6 @@ Route::middleware('guest.custom')->group(function () {
 });
 
 
-Route::middleware('auth')->group(function () {
+Route::middleware('auth-user')->group(function () {
     Route::post('logout', [AuthentificationController::class, 'logout'])->name('logout');
 });

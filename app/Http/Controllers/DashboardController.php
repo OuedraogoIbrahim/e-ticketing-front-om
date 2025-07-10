@@ -14,10 +14,6 @@ class DashboardController extends Controller
     {
         //
         $user = session()->get('auth_user');
-        if ($user['role'] == 'organisateur') {
-            return view('pages.backend.dashboard.organisateur', compact('user'));
-        } else {
-            return view('pages.backend.dashboard.client', compact('user'));
-        }
+        return view('pages.backend.dashboard.organisateur', compact('user'));
     }
 }

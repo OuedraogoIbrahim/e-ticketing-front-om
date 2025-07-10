@@ -80,11 +80,11 @@
                 <li>
                     <div class="dropdown-divider my-1 mx-n2"></div>
                 </li>
-                <li>
+                {{-- <li>
                     <a class="dropdown-item" href="{{ route('profile') }}">
                         <i class="ti ti-user me-3 ti-md"></i><span class="align-middle">Profile</span>
                     </a>
-                </li>
+                </li> --}}
 
                 {{-- <li>
                     <a class="dropdown-item" href="javascript:void(0);">

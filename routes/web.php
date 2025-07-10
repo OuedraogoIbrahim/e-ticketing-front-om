@@ -22,11 +22,11 @@ Route::get("/", function () {
 
 Route::get('list/events', [PublicEventController::class, 'index'])->name('list.events.index');
 
-Route::middleware('token.auth')->group(function () {
+Route::middleware('auth-user')->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
     Route::resource('events', EventController::class)->except(['update', 'store', 'destroy']);
     Route::get('/events/{eventId}/tickets', [EventController::class, 'history'])->name('events.history');
-    Route::get('profile', ProfileController::class)->name('profile');
+    // Route::get('profile', ProfileController::class)->name('profile');
 
     //Voir un evenement
     Route::get("/list/events/{eventId}", [PublicEventController::class, 'show'])->name('list.events.show');

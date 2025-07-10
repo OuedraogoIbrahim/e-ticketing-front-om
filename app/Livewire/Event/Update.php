@@ -24,6 +24,8 @@ class Update extends Component
     public $event_type_id;
     public $nombre_tickets;
     public $types = [];
+    public $type_autre = '';
+    public $autreTypeId = ''; // Stockera l'ID du type "Autre" s'il est choisit
 
     public function mount($eventId)
     {
@@ -37,6 +39,7 @@ class Update extends Component
         $response = Http::get(env('API_URL') . '/public/event-types');
         if ($response->successful()) {
             $this->types = $response->json();
+            $this->autreTypeId = collect($this->types)->search('autre');
         } else {
             session()->flash('error', 'Erreur lors de la récupération des types d\'événements.');
             $this->dispatch('show-error', message: 'Erreur lors de la récupération des types d\'événements.');
@@ -58,6 +61,7 @@ class Update extends Component
             $this->heure_fin = $this->event['heure_fin'];
             $this->event_type_id = $this->event['event_type_id'];
             $this->nombre_tickets = $this->event['nombre_tickets'];
+            $this->type_autre = $this->event['type_autre'];
         } else {
             session()->flash('error', 'Erreur lors de la récupération de l\'événement.');
             $this->dispatch('show-error', message: 'Erreur lors de la récupération de l\'événement.');
@@ -70,7 +74,14 @@ class Update extends Component
         $validated = $this->validate([
             'titre' => 'required|string|max:255',
             'nombre_tickets' => 'required|numeric|min:1',
-            'event_type_id' => 'required|exists:event_types,id',
+            'event_type_id' => [
+                'required',
+                function ($attribute, $value, $fail) {
+                    if (!array_key_exists($value, $this->types)) {
+                        $fail('Le type sélectionné est invalide.');
+                    }
+                }
+            ],
             'description' => 'nullable|string',
             'photo' => 'nullable|image|max:2048',
             'ville' => 'required|string|max:255',

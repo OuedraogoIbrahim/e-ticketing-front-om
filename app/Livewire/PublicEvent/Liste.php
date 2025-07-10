@@ -16,6 +16,7 @@ class Liste extends Component
     public $ville = '';
     public $date = '';
     public $search = '';
+    public $perPage = 10;
 
     public $eventTypes = [];
     public $villes = [];
@@ -50,14 +51,24 @@ class Liste extends Component
 
     public function fetchEvents()
     {
-        $response = Http::get(env('API_URL') . '/public/events');
-        if ($response->successful()) {
-            $this->allEvents = $response->json();
-        } else {
-            session()->flash('error', 'Erreur lors de la récupération des événements.');
-        }
-    }
+        $params = [
+            'per_page' => $this->perPage,
+            'page' => $this->getPage(),
+            'type' => $this->type,
+            'ville' => $this->ville,
+            'date' => $this->date,
+            'search' => $this->search
+        ];
 
+        $response = Http::get(env('API_URL') . '/public/events', array_filter($params));
+
+        if ($response->successful()) {
+            return $response->json();
+        }
+
+        session()->flash('error', 'Erreur lors de la récupération des événements.');
+        return ['data' => [], 'meta' => []];
+    }
     public function resetFilters()
     {
         $this->type = '';
@@ -67,67 +78,20 @@ class Liste extends Component
         $this->resetPage();
     }
 
+    // public function search()
+    // {
+    //     $this->resetPage();
+    // }
+
     public function render()
     {
-        $filteredEvents = collect($this->allEvents);
-
-        // Filtre par type d'événement
-        if ($this->type) {
-            $filteredEvents = $filteredEvents->where('event_type_id', $this->type);
-        }
-
-        // Filtre par ville
-        if ($this->ville) {
-            $filteredEvents = $filteredEvents->where('ville', $this->ville);
-        }
-
-        // Filtre par date
-        if ($this->date) {
-            $today = Carbon::today();
-            if ($this->date === 'today') {
-                $filteredEvents = $filteredEvents->filter(function ($event) use ($today) {
-                    return Carbon::parse($event['date_debut'])->isSameDay($today);
-                });
-            } elseif ($this->date === 'week') {
-                $filteredEvents = $filteredEvents->filter(function ($event) use ($today) {
-                    $dateDebut = Carbon::parse($event['date_debut']);
-                    return $dateDebut->gte($today) && $dateDebut->lte($today->copy()->addWeek());
-                });
-            } elseif ($this->date === 'month') {
-                $filteredEvents = $filteredEvents->filter(function ($event) use ($today) {
-                    $dateDebut = Carbon::parse($event['date_debut']);
-                    return $dateDebut->gte($today) && $dateDebut->lte($today->copy()->addMonth());
-                });
-            }
-        }
-
-        // Recherche par titre
-        if ($this->search) {
-            $filteredEvents = $filteredEvents->filter(function ($event) {
-                return stripos($event['titre'], $this->search) !== false;
-            });
-        }
-
-
-        // Pagination manuelle
-        $perPage = 6;
-        $currentPage = $this->getPage();
-        $total = $filteredEvents->count();
-        $events = $filteredEvents->slice(($currentPage - 1) * $perPage, $perPage)->values();
-
-        $paginator = new LengthAwarePaginator(
-            $events,
-            $total,
-            $perPage,
-            $currentPage,
-            ['path' => url()->current()]
-        );
-
+        $data = $this->fetchEvents();
 
         return view('livewire.public-event.liste', [
-            'events' => $paginator,
-            'eventTypes' => $this->eventTypes,
-            'villes' => $this->villes,
+            'events' => $data['data'] ?? [],
+            'pagination' => $data['meta'] ?? null,
+            'eventTypes' => $this->fetchEventTypes(),
+            'villes' => $this->fetchCities()
         ]);
     }
 }
