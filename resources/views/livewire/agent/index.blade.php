@@ -225,6 +225,7 @@
             // Gestion des modals
             const editModal = new bootstrap.Modal('#editAgentModal');
 
+
             Livewire.on('open-edit-modal', () => {
                 editModal.show();
             });
@@ -236,6 +237,18 @@
             // Fermeture du modal après succès
             Livewire.on('agent-updated', () => {
                 editModal.hide();
+            });
+
+            // Fermeture dynamique d’un modal via l'ID fourni
+            Livewire.on('close-modal', (event) => {
+                const modalId = event.id;
+                const modalElement = document.getElementById(modalId);
+                if (modalElement) {
+                    const instance = bootstrap.Modal.getInstance(modalElement);
+                    if (instance) {
+                        instance.hide();
+                    }
+                }
             });
         });
 

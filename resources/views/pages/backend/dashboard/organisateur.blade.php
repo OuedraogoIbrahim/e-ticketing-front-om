@@ -1,6 +1,6 @@
 @extends('layouts/layoutMaster')
 
-@section('title', 'Logistics Dashboard - Apps')
+@section('title', 'Tableau de bord')
 
 @section('vendor-style')
     @vite(['resources/assets/vendor/libs/apex-charts/apex-charts.scss', 'resources/assets/vendor/libs/datatables-bs5/datatables.bootstrap5.scss', 'resources/assets/vendor/libs/datatables-responsive-bs5/responsive.bootstrap5.scss'])
@@ -17,8 +17,5 @@
 @endsection
 
 @section('content')
-    <div class="row g-6">
-       
-    </div>
-
+    @livewire('Dashboard.Organisateur')
 @endsection
