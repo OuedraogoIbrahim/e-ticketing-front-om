@@ -86,7 +86,7 @@ class Index extends Component
             $this->dispatch('show-success', message: $response->json()['message']);
             $this->reset(['nom', 'password', 'agentId']);
             $this->fetchAgents();
-            $this->dispatch('close-modal', id: 'editAgentModal');
+            $this->dispatch('close-edit-modal');
         } else {
             $errors = $response->json()['message'] ?? 'Erreur lors de la mise à jour de l\'agent.';
             session()->flash('error', $errors);

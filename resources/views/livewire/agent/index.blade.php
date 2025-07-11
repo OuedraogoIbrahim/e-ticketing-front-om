@@ -68,8 +68,7 @@
         </div>
 
         <!-- Modal pour ajouter un agent -->
-        <div class="modal fade" id="addAgentModal" tabindex="-1" aria-labelledby="addAgentModalLabel"
-            aria-hidden="true">
+        <div class="modal fade" id="addAgentModal" tabindex="-1" aria-labelledby="addAgentModalLabel">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -116,8 +115,8 @@
         </div>
 
         <!-- Modal pour modifier un agent -->
-        <div class="modal fade" id="editAgentModal" tabindex="-1" aria-labelledby="editAgentModalLabel"
-            aria-hidden="true">
+        <div wire:ignore.self class="modal fade" id="editAgentModal" tabindex="-1"
+            aria-labelledby="editAgentModalLabel">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -125,7 +124,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form wire:submit="updateAgent">
+                        <form wire:submit.prevent="updateAgent">
                             <div class="mb-3">
                                 <label for="editNom" class="form-label">Nom <span class="text-danger">*</span></label>
                                 <input type="text" wire:model.defer="nom"
@@ -162,7 +161,7 @@
             </div>
         </div>
 
-        <div
+        {{-- <div
             wire:loading.class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center">
             <div wire:loading class="sk-chase sk-primary">
                 <div class="sk-chase-dot"></div>
@@ -172,7 +171,7 @@
                 <div class="sk-chase-dot"></div>
                 <div class="sk-chase-dot"></div>
             </div>
-        </div>
+        </div> --}}
 
         <script>
             function confirmDelete(event, agentId) {
@@ -197,38 +196,67 @@
         </script>
     </div>
 
-    @script
-        <script>
-            document.addEventListener('livewire:initialized', () => {
-                Livewire.on('show-success', (event) => {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Succès',
-                        text: event.message,
-                        showConfirmButton: false,
-                        timer: 1500
-                    });
-                });
 
-                Livewire.on('show-error', (event) => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Erreur',
-                        text: event.message,
-                        showConfirmButton: true
-                    });
-                });
+</div>
 
-                Livewire.on('open-modal', (event) => {
-                    const modal = new bootstrap.Modal(document.getElementById(event.id));
-                    modal.show();
-                });
-
-                Livewire.on('close-modal', (event) => {
-                    const modal = bootstrap.Modal.getInstance(document.getElementById(event.id));
-                    modal.hide();
+@script
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            // Gestion des messages
+            Livewire.on('show-success', (event) => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Succès',
+                    text: event.message,
+                    showConfirmButton: false,
+                    timer: 1500
                 });
             });
-        </script>
-    @endscript
-</div>
+
+            Livewire.on('show-error', (event) => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erreur',
+                    text: event.message,
+                    showConfirmButton: true
+                });
+            });
+
+            // Gestion des modals
+            const editModal = new bootstrap.Modal('#editAgentModal');
+
+            Livewire.on('open-edit-modal', () => {
+                editModal.show();
+            });
+
+            Livewire.on('close-edit-modal', () => {
+                editModal.hide();
+            });
+
+            // Fermeture du modal après succès
+            Livewire.on('agent-updated', () => {
+                editModal.hide();
+            });
+        });
+
+        function confirmDelete(event, agentId) {
+            event.preventDefault();
+            Swal.fire({
+                title: 'Êtes-vous sûr ?',
+                text: 'Vous ne pourrez pas revenir en arrière !',
+                imageUrl: "{{ asset('assets/lordicon/delete.gif') }}",
+                imageWidth: 100,
+                imageHeight: 100,
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Oui, supprimer !',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    @this.call('deleteAgent', agentId);
+                }
+            });
+        }
+    </script>
+@endscript
