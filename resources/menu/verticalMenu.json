@@ -25,6 +25,12 @@
           "slug": "events.index"
         }
       ]
+    },
+    {
+      "url": "/agents",
+      "name": "Gestiion Agents",
+      "icon": "menu-icon tf-icons ti ti-smart-home",
+      "slug": "agents"
     }
   ]
 }

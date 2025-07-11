@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\language\LanguageController;
 use App\Http\Controllers\DashboardController;
@@ -33,6 +34,9 @@ Route::middleware('auth-user')->group(function () {
 
     //Acheter un ticket
     Route::get("tickets/purchase/{eventId}", PaymentController::class)->name('tickets.purchase');
+
+    //Gestion des agents
+    Route::get('agents', AgentController::class)->name('agents');
 });
 
 //Recuperation de la session
